@@ -14,6 +14,7 @@ namespace OpenTabletDriver.Desktop.Binding.LinuxArtistMode
         private readonly EvdevVirtualTablet virtualTablet = (EvdevVirtualTablet)DesktopInterop.VirtualTablet;
 
         public static string[] ValidButtons { get; } = {
+            "Pen Tip",
             "Pen Button 1",
             "Pen Button 2",
             "Pen Button 3"
@@ -36,6 +37,7 @@ namespace OpenTabletDriver.Desktop.Binding.LinuxArtistMode
         {
             var eventCode = Button switch
             {
+                "Pen Tip"      => EventCode.BTN_TOUCH,
                 "Pen Button 1" => EventCode.BTN_STYLUS,
                 "Pen Button 2" => EventCode.BTN_STYLUS2,
                 "Pen Button 3" => EventCode.BTN_STYLUS3,
