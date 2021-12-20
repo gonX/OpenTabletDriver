@@ -40,6 +40,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 
             var pressure = new input_absinfo
             {
+                // FIXME: setting 'flat' attribute is a hack to workaround GNOME interpreting any pressure as pen button
+                flat = (int)(MaxPressure * 0.01),
                 maximum = MaxPressure
             };
             input_absinfo* pressurePtr = &pressure;
