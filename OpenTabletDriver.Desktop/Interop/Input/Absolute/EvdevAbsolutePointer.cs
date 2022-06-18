@@ -18,14 +18,14 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 
             var xAbs = new input_absinfo
             {
-                maximum = (int)DesktopInterop.VirtualScreen.Width
+                maximum = ((int)DesktopInterop.VirtualScreen.Width) - 1
             };
             input_absinfo* xPtr = &xAbs;
             Device.EnableCustomCode(EventType.EV_ABS, EventCode.ABS_X, (IntPtr)xPtr);
 
             var yAbs = new input_absinfo
             {
-                maximum = (int)DesktopInterop.VirtualScreen.Height
+                maximum = ((int)DesktopInterop.VirtualScreen.Height) - 1
             };
             input_absinfo* yPtr = &yAbs;
             Device.EnableCustomCode(EventType.EV_ABS, EventCode.ABS_Y, (IntPtr)yPtr);

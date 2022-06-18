@@ -24,7 +24,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 
             var xAbs = new input_absinfo
             {
-                maximum = (int)(DesktopInterop.VirtualScreen.Width * RESOLUTION),
+                maximum = (int)((DesktopInterop.VirtualScreen.Width - 1) * RESOLUTION),
                 resolution = 100000
             };
             input_absinfo* xPtr = &xAbs;
@@ -32,7 +32,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 
             var yAbs = new input_absinfo
             {
-                maximum = (int)(DesktopInterop.VirtualScreen.Height * RESOLUTION),
+                maximum = (int)((DesktopInterop.VirtualScreen.Height - 1) * RESOLUTION),
                 resolution = 100000
             };
             input_absinfo* yPtr = &yAbs;

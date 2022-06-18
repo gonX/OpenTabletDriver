@@ -72,9 +72,9 @@ namespace OpenTabletDriver.Plugin.Output
                 var halfDisplayHeight = Output?.Height / 2 ?? 0;
 
                 var minX = Output?.Position.X - halfDisplayWidth ?? 0;
-                var maxX = Output?.Position.X + Output?.Width - halfDisplayWidth ?? 0;
+                var maxX = (Output?.Position.X + Output?.Width - halfDisplayWidth - 1) ?? 0;
                 var minY = Output?.Position.Y - halfDisplayHeight ?? 0;
-                var maxY = Output?.Position.Y + Output?.Height - halfDisplayHeight ?? 0;
+                var maxY = (Output?.Position.Y + Output?.Height - halfDisplayHeight - 1) ?? 0;
 
                 this.min = new Vector2(minX, minY);
                 this.max = new Vector2(maxX, maxY);
@@ -104,7 +104,7 @@ namespace OpenTabletDriver.Plugin.Output
 
             // Scale millimeters to pixels
             res *= Matrix3x2.CreateScale(
-                output.Width / input.Width, output.Height / input.Height);
+                (output.Width - 1) / input.Width, (output.Height - 1) / input.Height);
 
             // Translate output to virtual screen coordinates
             res *= Matrix3x2.CreateTranslation(
