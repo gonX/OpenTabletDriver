@@ -221,7 +221,6 @@ namespace OpenTabletDriver.Daemon.Reflection
                         yield return interfaceType;
                 }
             }
-
         }
 
         public Type? GetPlugin(string path)
