@@ -16,7 +16,6 @@
       "OpenTabletDriver.Native.MacOS\\OpenTabletDriver.Native.MacOS.csproj",
       "OpenTabletDriver.Native.Windows\\OpenTabletDriver.Native.Windows.csproj",
       "OpenTabletDriver.Tests\\OpenTabletDriver.Tests.csproj",
-      "OpenTabletDriver.Tools.udev\\OpenTabletDriver.Tools.udev.csproj",
       "OpenTabletDriver.UI\\OpenTabletDriver.UI.csproj",
       "OpenTabletDriver.UI.Library\\OpenTabletDriver.UI.Library.csproj",
       "OpenTabletDriver.UI.Tests\\OpenTabletDriver.UI.Tests.csproj",
