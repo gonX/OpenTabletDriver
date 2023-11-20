@@ -1,6 +1,8 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTabletDriver.Daemon;
+using OpenTabletDriver.Daemon.Contracts.Persistence;
 using OpenTabletDriver.Daemon.Reflection;
 using OpenTabletDriver.Output;
 using OpenTabletDriver.Tablet;

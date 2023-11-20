@@ -1,6 +1,7 @@
 using System.Numerics;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTabletDriver.Daemon.Interop;
 using OpenTabletDriver.Platform.Pointer;
 
 namespace OpenTabletDriver.Benchmarks.Output
