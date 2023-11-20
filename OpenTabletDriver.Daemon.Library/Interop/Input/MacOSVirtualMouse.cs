@@ -2,6 +2,7 @@ using System;
 using OpenTabletDriver.Native.MacOS;
 using OpenTabletDriver.Native.MacOS.Input;
 using OpenTabletDriver.Platform.Pointer;
+
 namespace OpenTabletDriver.Daemon.Interop.Input
 {
     using static MacOS;
