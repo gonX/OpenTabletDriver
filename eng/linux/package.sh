@@ -12,7 +12,6 @@ fi
 PACKAGE_GEN=""
 PROJECTS=(
   "OpenTabletDriver.Daemon"
-  "OpenTabletDriver.Console"
   "OpenTabletDriver.UX.Gtk"
 )
 
