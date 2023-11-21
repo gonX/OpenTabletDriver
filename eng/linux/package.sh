@@ -12,7 +12,7 @@ fi
 PACKAGE_GEN=""
 PROJECTS=(
   "OpenTabletDriver.Daemon"
-  "OpenTabletDriver.UX.Gtk"
+  "OpenTabletDriver.UI"
 )
 
 MOVE_RULES_TO_ETC="false"
