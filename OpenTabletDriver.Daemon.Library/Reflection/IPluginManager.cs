@@ -21,9 +21,9 @@ namespace OpenTabletDriver.Daemon.Reflection
         Task<bool> InstallFromLocal(string filePath);
         bool UninstallPlugin(PluginContext plugin);
 
-        bool IsLoadablePluginType(Type type);
+        bool IsLoadablePlugin(Type type);
         IEnumerable<Type> GetPlugins<T>();
-        IEnumerable<Type> GetPlugins(Type interfaceType);
+        IEnumerable<Type> GetPlugins(Type pluginInterface);
         Type? GetPlugin(string type);
         IEnumerable<Type> GetImplementedInterfaces(Type pluginType);
     }

@@ -14,9 +14,9 @@ namespace OpenTabletDriver.Daemon
             if (path == null)
                 return null;
 
-            var type = pluginFactory.GetPlugin(path);
-            var attr = type?.GetCustomAttribute<PluginNameAttribute>();
-            return attr != null ? attr.Name : type?.Name;
+            var plugin = pluginFactory.GetPlugin(path);
+            var attr = plugin?.GetCustomAttribute<PluginNameAttribute>();
+            return attr != null ? attr.Name : plugin?.Name;
         }
     }
 }

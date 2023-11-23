@@ -64,7 +64,7 @@ namespace OpenTabletDriver.Daemon.Reflection
             {
                 var assembly = LoadFromAssemblyPath(file.FullName);
                 var pluginTypes = from type in assembly.ExportedTypes
-                    where _manager.IsLoadablePluginType(type)
+                    where _manager.IsLoadablePlugin(type)
                     select type;
 
                 ImmutableInterlocked.Update(ref _plugins, p => p.AddRange(pluginTypes));

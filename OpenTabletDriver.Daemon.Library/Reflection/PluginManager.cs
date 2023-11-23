@@ -58,7 +58,7 @@ namespace OpenTabletDriver.Daemon.Reflection
 
             var internalPluginTypesLinq = from asm in _coreAssemblies
                 from type in asm.ExportedTypes
-                where IsLoadablePluginType(type)
+                where IsLoadablePlugin(type)
                 select type;
 
             InternalPluginTypes = internalPluginTypesLinq.ToImmutableArray();
@@ -87,7 +87,7 @@ namespace OpenTabletDriver.Daemon.Reflection
                 LoadPlugin(dir);
         }
 
-        public bool IsLoadablePluginType(Type type)
+        public bool IsLoadablePlugin(Type type)
         {
             if (!type.GetCustomAttribute<SupportedPlatformAttribute>()?.IsCurrentPlatform ?? false)
             {
@@ -209,16 +209,16 @@ namespace OpenTabletDriver.Daemon.Reflection
             return GetPlugins(typeof(T));
         }
 
-        public IEnumerable<Type> GetPlugins(Type interfaceType)
+        public IEnumerable<Type> GetPlugins(Type pluginInterface)
         {
-            Debug.Assert(PluginInterfaces.Contains(interfaceType), $"Plugin interface {interfaceType.FullName} is not a registered plugin interface.");
+            Debug.Assert(PluginInterfaces.Contains(pluginInterface), $"Plugin interface {pluginInterface.FullName} is not a registered plugin interface.");
 
             foreach (var plugin in Plugins)
             {
                 foreach (var pluginType in plugin.PluginTypes)
                 {
-                    if (pluginType.IsAssignableFrom(interfaceType))
-                        yield return interfaceType;
+                    if (pluginType.IsAssignableFrom(pluginInterface))
+                        yield return pluginInterface;
                 }
             }
         }

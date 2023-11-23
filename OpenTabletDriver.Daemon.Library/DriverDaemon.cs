@@ -645,7 +645,7 @@ namespace OpenTabletDriver.Daemon
             var metadata = context.Metadata;
             var pluginDtos = context.Assemblies
                 .SelectMany(a => a.ExportedTypes)
-                .Where(t => _pluginManager.IsLoadablePluginType(t) && t.IsPlatformSupported())
+                .Where(t => _pluginManager.IsLoadablePlugin(t) && t.IsPlatformSupported())
                 .Select(t => ExtractDto(t));
 
             return new PluginContextDto

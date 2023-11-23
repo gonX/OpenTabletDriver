@@ -30,12 +30,12 @@ namespace OpenTabletDriver.Daemon.Reflection
 
         public T? Construct<T>(string path, params object[] args) where T : class
         {
-            var type = GetPlugin(path);
-            if (type != null)
+            var plugin = GetPlugin(path);
+            if (plugin != null)
             {
                 try
                 {
-                    return _serviceProvider.CreateInstance(type, args) as T;
+                    return _serviceProvider.CreateInstance(plugin, args) as T;
                 }
                 catch (TargetInvocationException e) when (e.Message == "Exception has been thrown by the target of an invocation.")
                 {
