@@ -69,6 +69,8 @@ public partial class MainWindowView : Window
             if (e.Handled)
                 return;
 
+            // show a menu when alt is pressed for navigation,
+            // mostly useful when nav sidebar is hidden
             if (e.Key == Key.LeftAlt || e.Key == Key.RightAlt)
             {
                 e.Handled = true;
