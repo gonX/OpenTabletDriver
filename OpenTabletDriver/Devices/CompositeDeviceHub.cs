@@ -121,6 +121,8 @@ namespace OpenTabletDriver.Devices
 
         private async Task OnDevicesChanged(CancellationToken ct)
         {
+            // debounce for 100ms, this will be cancelled if another change is enqueued
+            // as per EnqueueHubChange()
             await Task.Delay(100, ct);
 
             var endpoints = GetEndpoints();
