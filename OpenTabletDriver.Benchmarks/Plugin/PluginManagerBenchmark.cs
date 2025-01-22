@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Moq;
-using OpenTabletDriver.Desktop.Interop.AppInfo;
-using OpenTabletDriver.Desktop.Reflection;
+using OpenTabletDriver.Daemon.Library.Interop.AppInfo;
+using OpenTabletDriver.Daemon.Library.Reflection;
 
 namespace OpenTabletDriver.Benchmarks.Plugin
 {

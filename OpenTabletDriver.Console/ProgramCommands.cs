@@ -5,11 +5,11 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using OpenTabletDriver.Console.Attributes;
-using OpenTabletDriver.Desktop;
-using OpenTabletDriver.Desktop.Contracts;
-using OpenTabletDriver.Desktop.Profiles;
-using OpenTabletDriver.Desktop.Reflection;
-using OpenTabletDriver.Desktop.Updater;
+using OpenTabletDriver.Daemon.Library;
+using OpenTabletDriver.Daemon.Library.Contracts;
+using OpenTabletDriver.Daemon.Library.Profiles;
+using OpenTabletDriver.Daemon.Library.Reflection;
+using OpenTabletDriver.Daemon.Library.Updater;
 using OpenTabletDriver.Output;
 using static System.Console;
 

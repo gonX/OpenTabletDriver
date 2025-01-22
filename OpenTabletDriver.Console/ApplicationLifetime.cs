@@ -2,9 +2,9 @@ using System;
 using System.CommandLine;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using OpenTabletDriver.Desktop;
-using OpenTabletDriver.Desktop.Contracts;
-using OpenTabletDriver.Desktop.RPC;
+using OpenTabletDriver.Daemon.Library;
+using OpenTabletDriver.Daemon.Library.Contracts;
+using OpenTabletDriver.Daemon.Library.RPC;
 
 namespace OpenTabletDriver.Console
 {

@@ -6,10 +6,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using OpenTabletDriver.Desktop;
-using OpenTabletDriver.Desktop.Contracts;
-using OpenTabletDriver.Desktop.Interop.AppInfo;
-using OpenTabletDriver.Desktop.RPC;
+using OpenTabletDriver.Daemon.Library;
+using OpenTabletDriver.Daemon.Library.Contracts;
+using OpenTabletDriver.Daemon.Library.Interop.AppInfo;
+using OpenTabletDriver.Daemon.Library.RPC;
 
 namespace OpenTabletDriver.Daemon
 {
