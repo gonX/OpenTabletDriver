@@ -68,6 +68,12 @@ namespace OpenTabletDriver.Plugin.Output
         {
             set
             {
+                if (value == TimeSpan.Zero)
+                {
+                    Log.Write("RelativeOutputMode", "Reset time cannot be 0", LogLevel.Error);
+                    throw new ArgumentException("Reset time cannot be 0");
+                }
+
                 _resetTime = value;
                 _resets = 0;
                 _warnedBadResets = false;
