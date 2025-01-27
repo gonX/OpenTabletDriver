@@ -70,7 +70,7 @@ namespace OpenTabletDriver.Plugin.Output
             {
                 if (value == TimeSpan.Zero)
                 {
-                    Log.Write("RelativeOutputMode", "Reset time cannot be 0", LogLevel.Error);
+                    Log.WriteNotify("RelativeOutputMode", "Reset time cannot be 0", LogLevel.Error);
                     throw new ArgumentException("Reset time cannot be 0");
                 }
 
@@ -111,7 +111,7 @@ namespace OpenTabletDriver.Plugin.Output
                 if (!_warnedBadResets &&
                     (_warnedBadResets =
                         _resets > 10))
-                    Log.Write("RelativeOutputMode",
+                    Log.WriteNotify("RelativeOutputMode",
                         $"Position reset spam detected - the configured reset time ({ResetTime.TotalMilliseconds} ms) is likely too low",
                         LogLevel.Warning);
 
