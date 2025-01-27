@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using Newtonsoft.Json;
+using OpenTabletDriver.Plugin.Output;
 
 namespace OpenTabletDriver.Desktop.Profiles
 {
@@ -55,7 +56,7 @@ namespace OpenTabletDriver.Desktop.Profiles
                 XSensitivity = 10,
                 YSensitivity = 10,
                 RelativeRotation = 0,
-                ResetTime = TimeSpan.FromMilliseconds(100)
+                ResetTime = RelativeOutputMode.DefaultResetTime,
             };
         }
     }

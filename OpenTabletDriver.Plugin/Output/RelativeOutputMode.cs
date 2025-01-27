@@ -29,6 +29,8 @@ namespace OpenTabletDriver.Plugin.Output
 
         private Vector2 sensitivity;
 
+        public static TimeSpan DefaultResetTime => TimeSpan.FromMilliseconds(100);
+
         /// <summary>
         /// The sensitivity vector in which input will be transformed.
         /// <remarks>
@@ -68,12 +70,7 @@ namespace OpenTabletDriver.Plugin.Output
         {
             set
             {
-                if (value == TimeSpan.Zero)
-                {
-                    Log.WriteNotify("RelativeOutputMode", "Reset time cannot be 0", LogLevel.Error);
-                    throw new ArgumentException("Reset time cannot be 0");
-                }
-
+                value = value.ValidateTimespan(DefaultResetTime, nameof(RelativeOutputMode));
                 _resetTime = value;
                 _resets = 0;
                 _warnedBadResets = false;
