@@ -11,6 +11,7 @@ namespace OpenTabletDriver.UX.Windows
         private const int LARGE_FONTSIZE = 14;
         private const int FONTSIZE = LARGE_FONTSIZE - 4;
         private const int SPACING = 10;
+        private const int TAB_CONTENT_WIDTH = 500;
 
         private const string JamesText = """
                                          In loving memory of jamesbt365.
@@ -117,7 +118,8 @@ namespace OpenTabletDriver.UX.Windows
             {
                 HorizontalContentAlignment = HorizontalAlignment.Center,
                 Padding = SPACING,
-                Spacing = SPACING / 2
+                Spacing = SPACING / 2,
+                Width = TAB_CONTENT_WIDTH
             };
 
             GenerateStackLayoutItems(ref memoriamTabContent,
@@ -135,7 +137,7 @@ namespace OpenTabletDriver.UX.Windows
                 VerticalContentAlignment = VerticalAlignment.Stretch,
                 Padding = SPACING,
                 Spacing = SPACING / 2,
-                Width = 500
+                Width = TAB_CONTENT_WIDTH
             };
 
             var licenseTabContentControl = new TextArea
@@ -157,7 +159,8 @@ namespace OpenTabletDriver.UX.Windows
             {
                 HorizontalContentAlignment = HorizontalAlignment.Center,
                 Padding = SPACING,
-                Spacing = SPACING / 2
+                Spacing = SPACING / 2,
+                Width = TAB_CONTENT_WIDTH
             };
 
             var creditsTabControl = new StackLayout
@@ -187,6 +190,7 @@ namespace OpenTabletDriver.UX.Windows
                 HorizontalContentAlignment = HorizontalAlignment.Center,
                 Padding = SPACING,
                 Spacing = SPACING / 2,
+                Width = TAB_CONTENT_WIDTH,
                 Items =
                 {
                     new ImageView
