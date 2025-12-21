@@ -46,7 +46,7 @@ namespace OpenTabletDriver.UX
             Driver.Connected += HandleDaemonConnected;
             Driver.Disconnected += HandleDaemonDisconnected;
 
-            Application.Instance.AsyncInvoke(async () =>
+            Application.Instance.AsyncInvoke(async void () =>
             {
                 try
                 {
@@ -359,7 +359,8 @@ namespace OpenTabletDriver.UX
                 : prefix;
         }
 
-        private void HandleDaemonConnected(object sender, EventArgs e) => Application.Instance.AsyncInvoke(async () =>
+        // ReSharper disable once AsyncVoidMethod
+        private void HandleDaemonConnected(object sender, EventArgs e) => Application.Instance.AsyncInvoke(async void () =>
         {
             // Hook events after the instance is (re)instantiated
             Log.Output += async (sender, message) => { if (Driver.IsConnected) await Driver.Instance?.WriteMessage(message); };
@@ -679,7 +680,8 @@ namespace OpenTabletDriver.UX
 
         private void CheckForUpdates()
         {
-            Application.Instance.AsyncInvoke(async () =>
+            // ReSharper disable once AsyncVoidMethod
+            Application.Instance.AsyncInvoke(async void () =>
             {
                 if (await Current.UpdaterWindow.GetWindow().HasUpdates())
                 {
