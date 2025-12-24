@@ -9,6 +9,7 @@ namespace OpenTabletDriver.Desktop
 
         protected void RaiseAndSetIfChanged<T>(ref T obj, T newValue, [CallerMemberName] string propertyName = "")
         {
+            if ((obj == null && newValue == null) || (obj != null && obj.Equals(newValue))) return;
             obj = newValue;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
