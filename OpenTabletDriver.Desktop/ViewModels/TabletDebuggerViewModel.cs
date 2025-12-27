@@ -14,6 +14,7 @@ using OpenTabletDriver.Desktop.RPC;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Tablet;
 using OpenTabletDriver.Plugin.Tablet.Touch;
+using OpenTabletDriver.Plugin.Tablet.Wheel;
 using OpenTabletDriver.Plugin.Timing;
 
 namespace OpenTabletDriver.Desktop.ViewModels;
@@ -59,11 +60,20 @@ public class TabletDebuggerViewModel : ViewModel, INotifyCollectionChanged, IDis
 
             var dataObject = value.ToObject();
 
+            AdditionalStatistics["Tablets Parsed"].SaveCountAdd1(value.Tablet.Properties.Name)
+                .HideAllChildren(); // probably nonsensical to keep in UI
+
+            AdditionalStatistics["Report Parser"].SaveCountAdd1(value.Path)
+                .HideAllChildren(); // goes too crazy in UI for now
+
             if (dataObject is IAbsolutePositionReport absolutePositionReport)
                 AdditionalStatistics["Tablet Position"].SaveMinMax(absolutePositionReport.Position);
 
             if (dataObject is ITouchReport touchReport)
                 AdditionalStatistics["Touch Position"].SaveMinMax(touchReport.Touches);
+
+            if (dataObject is IEraserReport eraserReport)
+                AdditionalStatistics["Eraser"].SaveButtons([eraserReport.Eraser], 1);
 
             if (dataObject is ITabletReport tabletReport)
             {
@@ -71,12 +81,43 @@ public class TabletDebuggerViewModel : ViewModel, INotifyCollectionChanged, IDis
                 AdditionalStatistics["Pen Buttons"].SaveButtons(tabletReport.PenButtons, (int)value.Tablet.Properties.Specifications.Pen.ButtonCount);
             }
 
+            if (dataObject is IMouseReport mouseReport)
+            {
+                AdditionalStatistics["Mouse Position"].SaveMinMax(mouseReport.Position);
+                AdditionalStatistics["Mouse Scroll"].SaveMinMax(mouseReport.Scroll);
+                AdditionalStatistics["Mouse Buttons"].SaveButtons(mouseReport.MouseButtons, (int)(value.Tablet.Properties.Specifications.MouseButtons?.ButtonCount ?? 0));
+            }
+
+            if (dataObject is IProximityReport proximityReport)
+            {
+                AdditionalStatistics["Hover Distance"].SaveMinMax(proximityReport.HoverDistance);
+                AdditionalStatistics["Proximity"].SaveButtons([proximityReport.NearProximity], 1);
+            }
+
+            if (dataObject is IToolReport toolReport)
+            {
+                AdditionalStatistics["Tool ID"].SaveCountAdd1(toolReport.RawToolID.ToString());
+                AdditionalStatistics["Tool Serial"].SaveCountAdd1(toolReport.Serial.ToString());
+                AdditionalStatistics["Tool Type"].SaveCountAdd1(toolReport.Tool.ToString());
+            }
+
             if (dataObject is IAuxReport auxReport)
                 if (auxReport.AuxButtons.Length > 0)
-                    AdditionalStatistics["Aux Buttons"].SaveButtons(auxReport.AuxButtons, (int)(value.Tablet.Properties.Specifications.AuxiliaryButtons?.ButtonCount ?? 0));
+                    AdditionalStatistics["Aux Buttons"].SaveButtons(auxReport.AuxButtons,
+                        (int)(value.Tablet.Properties.Specifications.AuxiliaryButtons?.ButtonCount ?? 0));
 
             if (dataObject is ITiltReport tiltReport)
                 AdditionalStatistics["Tilt Axes"].SaveMinMax(tiltReport.Tilt);
+
+            if (dataObject is IAbsoluteWheelReport { Position: not null } absoluteWheelReport)
+                AdditionalStatistics["Abs. Wheel Position"].SaveMinMax((int)absoluteWheelReport.Position);
+
+            if (dataObject is IRelativeWheelReport { Delta: not null } relativeWheelReport)
+                AdditionalStatistics["Rel. Wheel Position"].SaveMinMax((int)relativeWheelReport.Delta);
+
+            if (dataObject is IWheelButtonReport wheelButtonReport)
+                AdditionalStatistics["Wheel Buttons"].SaveButtons(wheelButtonReport.WheelButtons,
+                    (int)(value.Tablet.Properties.Specifications.Wheel?.Buttons.ButtonCount ?? 0));
 
             if (dataObject is IDeviceReport deviceReport)
             {
