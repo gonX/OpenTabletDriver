@@ -381,7 +381,7 @@ namespace OpenTabletDriver.UX
         private void HandleDaemonConnected(object sender, EventArgs e) => Application.Instance.AsyncInvoke(async () =>
         {
             // Hook events after the instance is (re)instantiated
-            Log.Output += async (sender, message) => { if (Driver.IsConnected) await Driver.Instance?.WriteMessage(message); };
+            Log.Output += LogToDriver;
             Driver.TabletsChanged += (sender, tablet) => SetTitle(tablet);
 
             // Load full menu
@@ -435,8 +435,14 @@ namespace OpenTabletDriver.UX
                 SetTitle(tablets);
         });
 
+        private async void LogToDriver(object sender, LogMessage message)
+        {
+            if (Driver.IsConnected) await Driver.Instance?.WriteMessage(message);
+        }
+
         private void HandleDaemonDisconnected(object sender, EventArgs e)
         {
+            Log.Output -= LogToDriver;
             if (SilenceDaemonShutdown)
                 return;
 
