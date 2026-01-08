@@ -4,22 +4,21 @@ using Newtonsoft.Json;
 namespace OpenTabletDriver.Plugin.Tablet
 {
     /// <summary>
-    /// Device specifications for a an analog reporting device, such as knobs, wheels & strips (more commonly touch strips).
+    /// Device specifications for an analog reporting device, such as knobs, wheels & strips (more commonly touch strips).
     /// </summary>
-    /// <remarks>
-    /// This spec currently does not allow analog devices with different specs.
-    /// </remarks>
     public class AnalogSpecifications
     {
         /// <summary>
-        /// The amount of steps in the analog device.
+        /// The amount of steps in the analog device, minus 1 (as step 0 is a valid step)
+        /// <para/>
+        /// For both relative and absolute wheels, this is the amount of steps per 360 degrees
         /// </summary>
         [Required(ErrorMessage = $"{nameof(StepCount)} must be defined")]
         [JsonProperty(Order = int.MinValue)]
         public uint StepCount { set; get; }
 
         /// <summary>
-        /// Does the device report relative position (movement) or absolute position
+        /// Does the device report relative position (deltas) or absolute position (exact value)
         /// </summary>
         [Required(ErrorMessage = $"{nameof(IsRelative)} must be defined")]
         [JsonProperty(Order = int.MinValue)]
