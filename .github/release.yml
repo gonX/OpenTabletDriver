@@ -1,0 +1,26 @@
+changelog:
+  categories:
+    - title: Regression Fixes
+      labels:
+        - regression
+    - title: Bug Fixes
+      labels:
+        - bug
+    - title: Tablet Configurations
+      labels:
+        - configuration
+    - title: Enhancements
+      labels:
+        - enhancement
+    - title: Documentation
+      labels:
+        - documentation
+    - title: Continuous Integration (CI)
+      labels:
+        - ci
+    - title: Packaging
+      labels:
+        - packaging
+    - title: Other Changes
+      labels:
+        - '*'
