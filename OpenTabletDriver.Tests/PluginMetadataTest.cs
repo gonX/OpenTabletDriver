@@ -39,5 +39,31 @@ namespace OpenTabletDriver.Tests
 
             Assert.Equal(expectedSupport, supportStatus);
         }
+
+        /// <summary>
+        /// Sanity check for ensuring improperly (or properly, depending on perspective) filled supported plugin versions are considered equal
+        /// </summary>
+        /// <remarks>This test is mostly food for thought for version naming</remarks>
+        [Fact]
+        public void PluginMetadata_Sameish_Versions_Are_Supported()
+        {
+            var shortVersionPlugin = new PluginMetadata
+            {
+                SupportedDriverVersion = new Version("0.6.7"),
+                // we cannot set MaxSupportedDriverVersion to this version, as `0.6.7.-1` < `0.6.7.0`
+                Name = "Spoofed Plugin",
+            };
+
+            Assert.True(shortVersionPlugin.IsSupportedBy(new Version("0.6.7.0")));
+
+            var longVersionPlugin = new PluginMetadata
+            {
+                SupportedDriverVersion = new Version("0.6.7.0"),
+                MaxSupportedDriverVersion = new Version("0.6.7.0"),
+                Name = "Spoofed Plugin",
+            };
+
+            Assert.True(longVersionPlugin.IsSupportedBy(new Version("0.6.7")));
+        }
     }
 }
