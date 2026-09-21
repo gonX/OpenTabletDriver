@@ -53,6 +53,9 @@ namespace OpenTabletDriver.Plugin.Output
         {
             set
             {
+                if (value < 101)
+                    Log.Write("Timer", "Low frequency detected, Output may appear choppy. please use 1000hz, 500hz, 250hz or 125hz instead.", LogLevel.Warning);
+
                 this.frequency = MathF.Max(1, value);
                 if (Scheduler != null)
                 {
