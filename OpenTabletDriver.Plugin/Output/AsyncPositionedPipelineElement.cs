@@ -53,12 +53,12 @@ namespace OpenTabletDriver.Plugin.Output
         {
             set
             {
-                this.frequency = value;
+                this.frequency = MathF.Max(1, value);
                 if (Scheduler != null)
                 {
                     if (Scheduler is { Enabled: true })
                         Scheduler.Stop();
-                    Scheduler.Interval = 1000f / value;
+                    Scheduler.Interval = 1000f / this.frequency;
                     Scheduler.Start();
                 }
             }
