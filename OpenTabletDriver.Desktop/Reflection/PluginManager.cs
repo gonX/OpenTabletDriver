@@ -42,19 +42,17 @@ namespace OpenTabletDriver.Desktop.Reflection
             if (localInternalTypes.Count(x => x.ImplementedInterfaces.Contains(typeof(ITimer))) > 1)
             {
                 // remove FallbackTimer if another timer is present
-                internalTypes =
+                localInternalTypes =
                     [.. localInternalTypes.Where(x => x.FullName != typeof(FallbackTimer).GetTypeInfo().FullName)];
             }
             else
-                internalTypes = [.. localInternalTypes];
+                localInternalTypes = [.. localInternalTypes];
 
-            pluginTypes = new ConcurrentBag<TypeInfo>(internalTypes);
+            pluginTypes = new ConcurrentBag<TypeInfo>(localInternalTypes);
 
             RegisterContainer();
             Debug.Assert(ContainerBuilder != null, "ContainerBuilder should be initialized at the end of constructor");
         }
-
-        public TypeInfo[] internalTypes;
 
         public IReadOnlyCollection<TypeInfo> PluginTypes => pluginTypes;
         protected ConcurrentBag<TypeInfo> pluginTypes;
