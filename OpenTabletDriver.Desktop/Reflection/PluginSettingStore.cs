@@ -53,7 +53,9 @@ namespace OpenTabletDriver.Desktop.Reflection
                 return null;
             }
 
-            var obj = containerScope.ResolveKeyed<T>(Path);
+            var obj = containerScope.ResolveOptionalKeyed<T>(Path);
+            if (obj == null)
+                Log.Debug("Construct<T>", $"Could not resolve {Path}, returning null");
             ApplySettings(obj);
             return obj;
         }
