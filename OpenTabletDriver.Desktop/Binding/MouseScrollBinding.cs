@@ -12,9 +12,17 @@ namespace OpenTabletDriver.Desktop.Binding
 {
     [PluginName(PLUGIN_NAME)]
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-    public class MouseScrollBinding(IMouseScrollHandler mouseScrollHandler, ITimer timer) : IStateBinding
+    public class MouseScrollBinding : IStateBinding
     {
         private const string PLUGIN_NAME = "Mouse Scroll Binding";
+
+        private readonly IMouseScrollHandler _mouseScrollHandler;
+
+        public MouseScrollBinding(IMouseScrollHandler mouseScrollHandler, ITimer timer)
+        {
+            _mouseScrollHandler = mouseScrollHandler;
+            Timer = timer;
+        }
 
         private ScrollDirection _direction;
         private int _interval = 1;
@@ -22,7 +30,7 @@ namespace OpenTabletDriver.Desktop.Binding
         public ITimer? Timer
         {
             get;
-            set
+            init
             {
                 if (field != null)
                     field.Elapsed -= Scroll;
@@ -35,7 +43,7 @@ namespace OpenTabletDriver.Desktop.Binding
                     field.Elapsed += Scroll;
                 }
             }
-        } = timer;
+        }
 
         [Property("Direction"), DefaultPropertyValue("Vertical"), PropertyValidated(nameof(ValidDirections))]
         public string Direction
@@ -97,11 +105,11 @@ namespace OpenTabletDriver.Desktop.Binding
             int adjustedAmount = Invert ? Amount : Amount * -1;
 
             if (_direction == ScrollDirection.Vertical)
-                mouseScrollHandler.ScrollVertically(adjustedAmount);
+                _mouseScrollHandler.ScrollVertically(adjustedAmount);
             else
-                mouseScrollHandler.ScrollHorizontally(adjustedAmount);
+                _mouseScrollHandler.ScrollHorizontally(adjustedAmount);
 
-            if (mouseScrollHandler is ISynchronousPointer synchronousPointer)
+            if (_mouseScrollHandler is ISynchronousPointer synchronousPointer)
                 synchronousPointer.Flush();
         }
 
