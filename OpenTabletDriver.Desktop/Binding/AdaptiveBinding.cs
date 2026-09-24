@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using OpenTabletDriver.Desktop.Reflection;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Platform.Pointer;
@@ -18,11 +19,6 @@ namespace OpenTabletDriver.Desktop.Binding
         public IPenActionHandler? PenActionHandler { set; get; } = penActionHandler;
 
         public IMouseButtonHandler? MouseButtonHandler { set; get; } = mouseButtonHandler;
-
-        //public AdaptiveBinding(PenAction action)
-        //{
-        //    Binding = ActionToString(action);
-        //}
 
         public static string[] ButtonNames => ValidButtons.Keys.ToArray();
 
@@ -96,5 +92,13 @@ namespace OpenTabletDriver.Desktop.Binding
             ValidButtons.Where(x => x.Value == button)
                 .Select(x => x.Key)
                 .First();
+
+        public static PluginSettingStore GenerateStoreWithBinding(PenAction button)
+        {
+            var store = new PluginSettingStore(typeof(AdaptiveBinding), false);
+            store[nameof(Binding)].SetValue(ActionToString(button));
+
+            return store;
+        }
     }
 }
