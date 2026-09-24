@@ -2,18 +2,15 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using Autofac;
 using Newtonsoft.Json;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
-using OpenTabletDriver.Plugin.DependencyInjection;
-using OpenTabletDriver.Plugin.Tablet;
 
 namespace OpenTabletDriver.Desktop.Reflection
 {
     public class PluginSettingStore
     {
-        private static readonly Type _tabletRefType = typeof(TabletReference);
-
         public PluginSettingStore(Type? type, bool enable = true)
         {
             Path = type?.FullName;
@@ -48,7 +45,7 @@ namespace OpenTabletDriver.Desktop.Reflection
 
         public bool Enable { set; get; }
 
-        public T? Construct<T>(TabletReference? tabletReference = null, bool trigger = true) where T : class
+        public T? Construct<T>(ILifetimeScope containerScope) where T : class
         {
             if (Path == null)
             {
@@ -56,18 +53,8 @@ namespace OpenTabletDriver.Desktop.Reflection
                 return null;
             }
 
-            var obj = AppInfo.PluginManager.ConstructObject<T>(Path);
+            var obj = containerScope.ResolveKeyed<T>(Path);
             ApplySettings(obj);
-            if (trigger)
-                TriggerEventMethods(obj, tabletReference);
-            return obj;
-        }
-
-        public T? Construct<T>(IServiceManager provider, TabletReference? tabletReference = null) where T : class
-        {
-            var obj = Construct<T>(tabletReference, false);
-            PluginManager.Inject(provider, obj);
-            TriggerEventMethods(obj, tabletReference);
             return obj;
         }
 
@@ -160,28 +147,6 @@ namespace OpenTabletDriver.Desktop.Reflection
         public TypeInfo? GetTypeInfo<T>()
         {
             return AppInfo.PluginManager.GetChildTypes<T>().FirstOrDefault(t => t.FullName == Path);
-        }
-
-        private static void TriggerEventMethods(object? obj, TabletReference? tabletReference)
-        {
-            if (obj == null)
-                return;
-
-            var properties = from property in obj.GetType().GetProperties()
-                             let attr = property.GetCustomAttribute<TabletReferenceAttribute>()
-                             where attr != null && property.PropertyType == _tabletRefType
-                             select property;
-
-            foreach (var property in properties)
-                property.SetValue(obj, tabletReference);
-
-            var methods = from method in obj.GetType().GetMethods()
-                          let attr = method.GetCustomAttribute<OnDependencyLoadAttribute>()
-                          where attr != null
-                          select method;
-
-            foreach (var method in methods)
-                method.Invoke(obj, Array.Empty<object>());
         }
     }
 }

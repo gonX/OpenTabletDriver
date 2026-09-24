@@ -1,13 +1,19 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using OpenTabletDriver.Native.Linux;
 using OpenTabletDriver.Native.Linux.Evdev;
 using OpenTabletDriver.Native.Linux.Evdev.Structs;
 using OpenTabletDriver.Plugin;
+using OpenTabletDriver.Plugin.Attributes;
+using OpenTabletDriver.Plugin.Platform.Display;
 using OpenTabletDriver.Plugin.Platform.Pointer;
+using OpenTabletDriver.Plugin.Tablet;
 
 namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 {
+    [SupportedPlatform(PluginPlatform.Linux)]
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public class EvdevVirtualTablet : IPenActionHandler, IAbsolutePointer, IPressureHandler, ITiltHandler, IRotationHandler, IEraserHandler, IHoverDistanceHandler, ISynchronousPointer, IDisposable
     {
         private const int RESOLUTION = 1000; // subpixels per screen pixel
@@ -26,17 +32,16 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
             EventCode.BTN_TOOL_RUBBER,
         ];
 
-        public unsafe EvdevVirtualTablet()
+        public unsafe EvdevVirtualTablet(IVirtualScreen virtualScreen, TabletReference tabletReference)
         {
-            Device = new EvdevDevice("OpenTabletDriver Virtual Artist Tablet");
+            var name = tabletReference.Properties.Name;
+            var deviceName = $"OpenTabletDriver Virtual Artist Tablet for {name}";
+            Device = new EvdevDevice(deviceName);
 
             Device.EnableProperty(InputProperty.INPUT_PROP_DIRECT);
             Device.EnableProperty(InputProperty.INPUT_PROP_POINTER);
 
             Device.EnableType(EventType.EV_ABS);
-
-            var virtualScreen = DesktopInterop.VirtualScreen
-                                ?? throw new InvalidOperationException("Could not get virtual screen");
 
             var xAbs = new input_absinfo
             {
@@ -95,10 +100,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
             switch (result)
             {
                 case ERRNO.NONE:
-                    Log.Debug("Evdev", $"Successfully initialized virtual pressure sensitive tablet. (code {result})");
+                    Log.Debug("Evdev", $"Successfully initialized {deviceName}");
                     break;
                 default:
-                    Log.WriteNotify("Evdev", $"Failed to initialize virtual pressure sensitive tablet. (error code {result})", LogLevel.Error);
+                    Log.WriteNotify("Evdev", $"Failed to initialize '{deviceName}' (error code {result})", LogLevel.Error);
                     break;
             }
         }

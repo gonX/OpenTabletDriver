@@ -5,21 +5,24 @@ using OpenTabletDriver.Native.Linux;
 using OpenTabletDriver.Native.Linux.Evdev;
 using OpenTabletDriver.Native.Linux.Evdev.Structs;
 using OpenTabletDriver.Plugin;
+using OpenTabletDriver.Plugin.Attributes;
+using OpenTabletDriver.Plugin.Platform.Display;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 
 namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 {
+    [SupportedPlatform(PluginPlatform.Linux)]
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public class EvdevAbsolutePointer : EvdevVirtualMouse, IAbsolutePointer
     {
         [SetsRequiredMembers]
-        public unsafe EvdevAbsolutePointer()
+        public unsafe EvdevAbsolutePointer(IVirtualScreen virtualScreen)
         {
-            Device = new EvdevDevice("OpenTabletDriver Virtual Tablet");
+            var deviceName = "OpenTabletDriver Virtual Tablet";
+            Device = new EvdevDevice(deviceName);
 
             Device.EnableType(EventType.EV_ABS);
             Device.EnableType(EventType.EV_REL);
-
-            var virtualScreen = DesktopInterop.VirtualScreen ?? throw new InvalidOperationException("Could not get virtual screen");
 
             var xAbs = new input_absinfo
             {
@@ -56,10 +59,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
             switch (result)
             {
                 case ERRNO.NONE:
-                    Log.Debug("Evdev", $"Successfully initialized virtual tablet. (code {result})");
+                    Log.Debug("Evdev", $"Successfully initialized '{deviceName}'");
                     break;
                 default:
-                    Log.WriteNotify("Evdev", $"Failed to initialize virtual tablet. (error code {result})", LogLevel.Error);
+                    Log.WriteNotify("Evdev", $"Failed to initialize '{deviceName}': {result}", LogLevel.Error);
                     break;
             }
         }

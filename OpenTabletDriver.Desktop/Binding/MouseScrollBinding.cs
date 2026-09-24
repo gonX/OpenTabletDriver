@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
-using OpenTabletDriver.Plugin.DependencyInjection;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
 using OpenTabletDriver.Plugin.Timers;
@@ -11,44 +11,31 @@ using OpenTabletDriver.Plugin.Timers;
 namespace OpenTabletDriver.Desktop.Binding
 {
     [PluginName(PLUGIN_NAME)]
-    public class MouseScrollBinding : IStateBinding
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+    public class MouseScrollBinding(IMouseScrollHandler mouseScrollHandler, ITimer timer) : IStateBinding
     {
         private const string PLUGIN_NAME = "Mouse Scroll Binding";
 
-        private ITimer? _timer;
         private ScrollDirection _direction;
         private int _interval = 1;
 
-        [Resolved]
-        public IMouseScrollHandler? Pointer { set; get; }
-
-        [Resolved]
         public ITimer? Timer
         {
-            get => _timer;
+            get;
             set
             {
-                if (_timer != null)
-                    _timer.Elapsed -= Scroll;
+                if (field != null)
+                    field.Elapsed -= Scroll;
 
-                _timer = value;
+                field = value;
 
-                if (_timer != null)
+                if (field != null)
                 {
-                    _timer.Interval = _interval;
-                    _timer.Elapsed += Scroll;
+                    field.Interval = _interval;
+                    field.Elapsed += Scroll;
                 }
             }
-        }
-
-        [OnDependencyLoad]
-        public void VerifyInitialization()
-        {
-            if (Pointer == null)
-                Log.Write(PLUGIN_NAME,
-                    $"{nameof(IMouseScrollHandler)} unavailable. Your selected output mode is incompatible",
-                    LogLevel.Error);
-        }
+        } = timer;
 
         [Property("Direction"), DefaultPropertyValue("Vertical"), PropertyValidated(nameof(ValidDirections))]
         public string Direction
@@ -93,8 +80,7 @@ namespace OpenTabletDriver.Desktop.Binding
             set
             {
                 _interval = Math.Max(1, value);
-                if (_timer != null)
-                    _timer.Interval = _interval;
+                Timer?.Interval = _interval;
             }
         }
 
@@ -111,11 +97,11 @@ namespace OpenTabletDriver.Desktop.Binding
             int adjustedAmount = Invert ? Amount : Amount * -1;
 
             if (_direction == ScrollDirection.Vertical)
-                Pointer?.ScrollVertically(adjustedAmount);
+                mouseScrollHandler.ScrollVertically(adjustedAmount);
             else
-                Pointer?.ScrollHorizontally(adjustedAmount);
+                mouseScrollHandler.ScrollHorizontally(adjustedAmount);
 
-            if (Pointer is ISynchronousPointer synchronousPointer)
+            if (mouseScrollHandler is ISynchronousPointer synchronousPointer)
                 synchronousPointer.Flush();
         }
 

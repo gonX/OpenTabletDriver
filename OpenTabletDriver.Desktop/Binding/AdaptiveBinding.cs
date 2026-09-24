@@ -1,41 +1,28 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
-using OpenTabletDriver.Plugin.DependencyInjection;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
 
 namespace OpenTabletDriver.Desktop.Binding
 {
     [PluginName(PluginName)]
-    public class AdaptiveBinding : IStateBinding
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+    public class AdaptiveBinding(IPenActionHandler penActionHandler, IMouseButtonHandler mouseButtonHandler) : IStateBinding
     {
         private const string PluginName = "Adaptive Binding";
 
-        [Resolved] public IPenActionHandler? PenActionHandler { set; get; }
+        public IPenActionHandler? PenActionHandler { set; get; } = penActionHandler;
 
-        [Resolved] public IMouseButtonHandler? MouseButtonHandler { set; get; }
+        public IMouseButtonHandler? MouseButtonHandler { set; get; } = mouseButtonHandler;
 
-        [OnDependencyLoad]
-        public void VerifyInitialization()
-        {
-            if (PenActionHandler == null && MouseButtonHandler == null)
-                Log.Write(PluginName,
-                    $"Neither {nameof(IPenActionHandler)} nor {nameof(IMouseButtonHandler)} is available. Your selected output mode is incompatible",
-                    LogLevel.Error);
-        }
-
-        // ReSharper disable once UnusedMember.Global
-        public AdaptiveBinding()
-        {
-        }
-
-        public AdaptiveBinding(PenAction action)
-        {
-            Binding = ActionToString(action);
-        }
+        //public AdaptiveBinding(PenAction action)
+        //{
+        //    Binding = ActionToString(action);
+        //}
 
         public static string[] ButtonNames => ValidButtons.Keys.ToArray();
 

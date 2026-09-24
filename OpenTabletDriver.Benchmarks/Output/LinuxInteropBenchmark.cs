@@ -1,13 +1,15 @@
 using System.Numerics;
 using BenchmarkDotNet.Attributes;
+using NSubstitute;
 using OpenTabletDriver.Desktop.Interop.Input.Absolute;
 using OpenTabletDriver.Desktop.Interop.Input.Relative;
+using OpenTabletDriver.Plugin.Platform.Display;
 
 namespace OpenTabletDriver.Benchmarks.Output
 {
     public class LinuxInteropBenchmark
     {
-        EvdevAbsolutePointer absolutePointer = new EvdevAbsolutePointer();
+        EvdevAbsolutePointer absolutePointer = new EvdevAbsolutePointer(Substitute.For<IVirtualScreen>()!);
         EvdevRelativePointer relativePointer = new EvdevRelativePointer();
 
         [Benchmark]

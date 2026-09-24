@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Autofac;
 using OpenTabletDriver.Desktop;
 using OpenTabletDriver.Desktop.Binding;
 using OpenTabletDriver.Desktop.Contracts;
@@ -136,7 +138,14 @@ namespace OpenTabletDriver.Daemon
         public event EventHandler? Resynchronize;
 
         public Driver Driver { get; }
-        private Settings? Settings { set; get; }
+
+        [AllowNull]
+        private Settings Settings
+        {
+            get => field ?? Settings.GetDefaults(DriverContainerScope);
+            set;
+        }
+
         private Collection<ITool> Tools { set; get; } = new Collection<ITool>();
         private readonly IUpdater? Updater = DesktopInterop.Updater;
         private readonly ISleepDetector? SleepDetector = new SleepDetector();
@@ -146,6 +155,15 @@ namespace OpenTabletDriver.Daemon
         private LogFile _logFile;
 
         private bool debugging;
+        private ILifetimeScope? _driverContainerScope;
+
+        [AllowNull]
+        private ILifetimeScope DriverContainerScope
+        {
+            get => _driverContainerScope ??
+                   throw new InvalidOperationException("Tried retrieving DI container scope before it was initialized");
+            set => _driverContainerScope = value;
+        }
 
         public Task WriteMessage(LogMessage message)
         {
@@ -165,9 +183,12 @@ namespace OpenTabletDriver.Daemon
 
             AppInfo.PluginManager.Load();
 
-            // Add services to inject on plugin construction
-            AppInfo.PluginManager.AddService<IDriver>(() => this.Driver);
-            AppInfo.PluginManager.AddService<IDriverDaemon>(() => this);
+            _driverContainerScope?.Dispose();
+            DriverContainerScope = AppInfo.PluginManager.Container?.BeginLifetimeScope(c =>
+            {
+                c.RegisterInstance<IDriverDaemon>(this);
+                c.RegisterInstance<IDriver>(this.Driver);
+            });
 
             return Task.CompletedTask;
         }
@@ -212,24 +233,32 @@ namespace OpenTabletDriver.Daemon
             return await GetTablets();
         }
 
-        public Task SetSettings(Settings? settings)
+        public Task SetSettings(Settings settings)
         {
             try
             {
-                foreach (var dev in Driver.InputDevices)
-                    dev.OutputMode?.Dispose();
-
-                Settings = settings ??= Settings.GetDefaults();
+                Settings = settings;
 
                 foreach (var dev in Driver.InputDevices)
                 {
+                    dev.LifetimeScope?.Dispose();
                     var tabletReference = dev.CreateReference();
+                    dev.LifetimeScope = DriverContainerScope.BeginLifetimeScope(c =>
+                    {
+                        // only way to indirectly make the output mode available
+                        c.RegisterInstance(dev).AsSelf();
+                        // make TabletReference available via DI in this scope
+                        c.RegisterInstance(tabletReference).AsSelf();
+                    });
+
+                    Debug.Assert(dev.LifetimeScope != null);
+
                     string group = dev.Properties.Name;
-                    var profile = Settings.Profiles[dev];
+                    var profile = Settings.Profiles.GetProfile(dev.LifetimeScope, tabletReference);
 
                     profile.BindingSettings.MatchSpecifications(dev.Properties.Specifications);
 
-                    dev.OutputMode = profile.OutputMode.Construct<IOutputMode>(tabletReference);
+                    dev.OutputMode = profile.OutputMode.Construct<IOutputMode>(dev.LifetimeScope);
 
                     if (dev.OutputMode != null)
                         Log.Write(group, $"Output mode: {profile.OutputMode.Name}");
@@ -273,22 +302,37 @@ namespace OpenTabletDriver.Daemon
                 if (Driver.InputDevices.Length > 0)
                     Log.Write("Settings", "Driver is enabled.");
 
-                SetToolSettings();
+                SetToolSettings(DriverContainerScope);
 
                 lastValidSettings = settings;
                 return Task.CompletedTask;
             }
-            catch
+            catch (Exception ex)
             {
-                try
+                Log.Exception(ex);
+                Log.Write("Settings", "Failed to apply settings. Recovering...", LogLevel.Error);
+
+                bool shouldRecover = lastValidSettings == null;
+                bool canary = false;
+                if (!shouldRecover)
                 {
-                    SetSettings(lastValidSettings);
-                    Log.Write("Settings", "Failed to apply settings. Reverted to last valid settings.", LogLevel.Error, true);
+                    try
+                    {
+                        Debug.Assert(lastValidSettings != null);
+                        SetSettings(lastValidSettings);
+                        Log.Write("Settings", "Reverted to last valid settings.", LogLevel.Info, true);
+                        canary = true;
+                    }
+                    catch
+                    {
+                        shouldRecover = true;
+                    }
                 }
-                catch
+                if (shouldRecover)
                 {
+                    Debug.Assert(!canary);
                     RecoverSettings(settings);
-                    Log.Write("Settings", "Failed to apply settings. Attempted recovery. Some settings may have been lost.", LogLevel.Error, true);
+                    Log.Write("Settings", "Recovered your settings on top of defaults. Some settings may have been lost.", LogLevel.Error, true);
                 }
 
                 Resynchronize?.Invoke(this, EventArgs.Empty);
@@ -315,7 +359,7 @@ namespace OpenTabletDriver.Daemon
 
         private void RecoverSettings(Settings? settings)
         {
-            var recoveredSettings = Settings.GetDefaults();
+            var recoveredSettings = Settings.GetDefaults(DriverContainerScope);
 
             if (settings != null)
             {
@@ -361,7 +405,7 @@ namespace OpenTabletDriver.Daemon
 
         public async Task ResetSettings()
         {
-            await SetSettings(Settings.GetDefaults());
+            await SetSettings(Settings.GetDefaults(DriverContainerScope));
         }
 
         private async Task LoadUserSettings()
@@ -403,7 +447,7 @@ namespace OpenTabletDriver.Daemon
                 await ResetSettings();
 
                 // only save fresh settings if a tablet was configured
-                if (Settings!.Profiles.Any())
+                if (Settings.Profiles.Any())
                     Settings.Serialize(settingsFile);
             }
         }
@@ -422,6 +466,7 @@ namespace OpenTabletDriver.Daemon
 
         private static void SetOutputModeElements(InputDeviceTree dev, IOutputMode outputMode, Profile profile, BindingHandler bindingHandler)
         {
+            Debug.Assert(dev.LifetimeScope != null);
             string group = dev.Properties.Name;
 
             var pressureRewriteFilter = new PressureRewriteFilter
@@ -433,7 +478,7 @@ namespace OpenTabletDriver.Daemon
 
             var elements = (from store in profile.Filters
                             where store is { Enable: true }
-                            let filter = store!.Construct<IPositionedPipelineElement<IDeviceReport>>(outputMode.Tablet)
+                            let filter = store!.Construct<IPositionedPipelineElement<IDeviceReport>>(dev.LifetimeScope)
                             where filter != null
                             select filter!).ToArray();
 
@@ -502,28 +547,14 @@ namespace OpenTabletDriver.Daemon
             Debug.Assert(tabletReference != null,
                 "tabletReference was null. This was expected to be checked by the sender");
 
+            Debug.Assert(dev.LifetimeScope != null,
+                "dev.LifetimeScope was null. This was expected to be initialized by the sender");
+
             var bindingHandler = new BindingHandler(tabletReference);
-
-            var bindingServiceProvider = new ServiceManager();
-            object? pointer = outputMode switch
-            {
-                AbsoluteOutputMode absoluteOutputMode => absoluteOutputMode.Pointer,
-                RelativeOutputMode relativeOutputMode => relativeOutputMode.Pointer,
-                _ => null
-            };
-
-            if (pointer is IMouseButtonHandler mouseButtonHandler)
-                bindingServiceProvider.AddService(() => mouseButtonHandler);
-
-            if (pointer is IMouseScrollHandler mouseScrollHandler)
-                bindingServiceProvider.AddService(() => mouseScrollHandler);
-
-            if (pointer is IPenActionHandler penActionHandler)
-                bindingServiceProvider.AddService(() => penActionHandler);
 
             var tip = bindingHandler.Tip = new ThresholdBindingState
             {
-                Binding = settings.TipButton?.Construct<IBinding>(bindingServiceProvider, tabletReference),
+                Binding = settings.TipButton?.Construct<IBinding>(dev.LifetimeScope),
             };
 
             if (tip.Binding != null)
@@ -533,7 +564,7 @@ namespace OpenTabletDriver.Daemon
 
             var eraser = bindingHandler.Eraser = new ThresholdBindingState
             {
-                Binding = settings.EraserButton?.Construct<IBinding>(bindingServiceProvider, tabletReference),
+                Binding = settings.EraserButton?.Construct<IBinding>(dev.LifetimeScope),
             };
 
             if (eraser.Binding != null)
@@ -543,7 +574,7 @@ namespace OpenTabletDriver.Daemon
 
             if (settings.PenButtons.Any(b => b?.Path != null))
             {
-                SetBindingHandlerCollectionSettings(bindingServiceProvider, settings.PenButtons, bindingHandler.PenButtons, tabletReference, settings.EnableDragBindings);
+                SetBindingHandlerCollectionSettings(dev.LifetimeScope, settings.PenButtons, bindingHandler.PenButtons, settings.EnableDragBindings);
                 Log.Write(group, $"Pen Bindings: " + string.Join(", ", bindingHandler.PenButtons.Select(b => b.Value?.Binding)));
 
                 if (settings.EnableDragBindings)
@@ -552,7 +583,7 @@ namespace OpenTabletDriver.Daemon
 
             if (settings.AuxButtons.Any(b => b?.Path != null))
             {
-                SetBindingHandlerCollectionSettings(bindingServiceProvider, settings.AuxButtons, bindingHandler.AuxButtons, tabletReference);
+                SetBindingHandlerCollectionSettings(dev.LifetimeScope, settings.AuxButtons, bindingHandler.AuxButtons);
                 Log.Write(group, $"Express Key Bindings: " + string.Join(", ", bindingHandler.AuxButtons.Select(b => b.Value?.Binding)));
             }
 
@@ -563,8 +594,8 @@ namespace OpenTabletDriver.Daemon
 
                 if (wheelBindingSetting.WheelButtons.Any(b => b?.Path != null))
                 {
-                    SetBindingHandlerCollectionSettings(bindingServiceProvider, wheelBindingSetting.WheelButtons,
-                        wheelBindingHandler.WheelButtons, tabletReference);
+                    SetBindingHandlerCollectionSettings(dev.LifetimeScope, wheelBindingSetting.WheelButtons,
+                        wheelBindingHandler.WheelButtons);
 
                     Log.Write(group,
                         $"Wheel {wheelIndex + 1} Button Bindings: [" + string.Join("], [",
@@ -573,8 +604,7 @@ namespace OpenTabletDriver.Daemon
 
                 var clockwiseRotation = wheelBindingHandler.ClockwiseRotation = new DeltaThresholdBindingState
                 {
-                    Binding = wheelBindingSetting.ClockwiseRotation?.Construct<IBinding>(bindingServiceProvider,
-                        tabletReference),
+                    Binding = wheelBindingSetting.ClockwiseRotation?.Construct<IBinding>(dev.LifetimeScope),
                     ActivationThreshold = wheelBindingSetting.ClockwiseActivationThreshold,
                     IsNegativeThreshold = false
                 };
@@ -582,8 +612,7 @@ namespace OpenTabletDriver.Daemon
                 var counterClockwiseRotation = wheelBindingHandler.CounterClockwiseRotation =
                     new DeltaThresholdBindingState
                     {
-                        Binding = wheelBindingSetting.CounterClockwiseRotation?.Construct<IBinding>(
-                            bindingServiceProvider, tabletReference),
+                        Binding = wheelBindingSetting.CounterClockwiseRotation?.Construct<IBinding>(dev.LifetimeScope),
                         ActivationThreshold = wheelBindingSetting.CounterClockwiseActivationThreshold,
                         IsNegativeThreshold = true
                     };
@@ -597,18 +626,18 @@ namespace OpenTabletDriver.Daemon
 
             if (settings.MouseButtons.Any(b => b?.Path != null))
             {
-                SetBindingHandlerCollectionSettings(bindingServiceProvider, settings.MouseButtons, bindingHandler.MouseButtons, tabletReference);
+                SetBindingHandlerCollectionSettings(dev.LifetimeScope, settings.MouseButtons, bindingHandler.MouseButtons);
                 Log.Write(group, $"Mouse Button Bindings: [" + string.Join("], [", bindingHandler.MouseButtons.Select(b => b.Value?.Binding)) + "]");
             }
 
             var scrollUp = bindingHandler.MouseScrollUp = new BindingState
             {
-                Binding = settings.MouseScrollUp?.Construct<IBinding>(bindingServiceProvider, tabletReference)
+                Binding = settings.MouseScrollUp?.Construct<IBinding>(dev.LifetimeScope)
             };
 
             var scrollDown = bindingHandler.MouseScrollDown = new BindingState
             {
-                Binding = settings.MouseScrollDown?.Construct<IBinding>(bindingServiceProvider, tabletReference)
+                Binding = settings.MouseScrollDown?.Construct<IBinding>(dev.LifetimeScope)
             };
 
             if (scrollUp.Binding != null || scrollDown.Binding != null)
@@ -619,11 +648,11 @@ namespace OpenTabletDriver.Daemon
             return bindingHandler;
         }
 
-        private static void SetBindingHandlerCollectionSettings(IServiceManager serviceManager, PluginSettingStoreCollection collection, Dictionary<int, BindingState?> targetDict, TabletReference tabletReference, bool bindingRequiresPressure = false)
+        private static void SetBindingHandlerCollectionSettings(ILifetimeScope serviceManager, PluginSettingStoreCollection collection, Dictionary<int, BindingState?> targetDict, bool bindingRequiresPressure = false)
         {
             for (int index = 0; index < collection.Count; index++)
             {
-                var binding = collection[index]?.Construct<IBinding>(serviceManager, tabletReference);
+                var binding = collection[index]?.Construct<IBinding>(serviceManager);
                 var state = binding == null ? null : new BindingState
                 {
                     Binding = binding,
@@ -635,32 +664,29 @@ namespace OpenTabletDriver.Daemon
             }
         }
 
-        private void SetToolSettings()
+        private void SetToolSettings(ILifetimeScope lifetimeScope)
         {
             foreach (var runningTool in Tools)
                 runningTool.Dispose();
             Tools.Clear();
 
-            if (Settings != null)
+            foreach (var store in Settings.Tools)
             {
-                foreach (var store in Settings.Tools)
-                {
-                    if (store is not { Enable: true })
-                        continue;
+                if (store is not { Enable: true })
+                    continue;
 
-                    var tool = store.Construct<ITool>();
+                var tool = store.Construct<ITool>(lifetimeScope);
 
-                    if (tool?.Initialize() ?? false)
-                        Tools.Add(tool);
-                    else
-                        Log.Write("Tool", $"Failed to initialize {store.Name} tool.", LogLevel.Error);
-                }
+                if (tool?.Initialize() ?? false)
+                    Tools.Add(tool);
+                else
+                    Log.Write("Tool", $"Failed to initialize {store.Name} tool.", LogLevel.Error);
             }
         }
 
         public Task<Settings> GetSettings()
         {
-            return Task.FromResult(Settings!);
+            return Task.FromResult(Settings);
         }
 
         public Task<IEnumerable<SerializedDeviceEndpoint>> GetDevices()
