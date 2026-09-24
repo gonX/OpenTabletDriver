@@ -27,7 +27,7 @@ namespace OpenTabletDriver.Desktop.Binding
         private ScrollDirection _direction;
         private int _interval = 1;
 
-        public ITimer? Timer
+        public ITimer Timer
         {
             get;
             init
@@ -88,17 +88,17 @@ namespace OpenTabletDriver.Desktop.Binding
             set
             {
                 _interval = Math.Max(1, value);
-                Timer?.Interval = _interval;
+                Timer.Interval = _interval;
             }
         }
 
         public void Press(TabletReference tablet, IDeviceReport report)
         {
             Scroll();
-            Timer?.Start();
+            Timer.Start();
         }
 
-        public void Release(TabletReference tablet, IDeviceReport report) => Timer?.Stop();
+        public void Release(TabletReference tablet, IDeviceReport report) => Timer.Stop();
 
         public void Scroll()
         {
