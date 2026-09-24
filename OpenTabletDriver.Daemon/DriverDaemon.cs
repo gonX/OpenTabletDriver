@@ -104,6 +104,15 @@ namespace OpenTabletDriver.Daemon
                 await DetectTablets();
                 await SetSettings(Settings);
             };
+
+            AppInfo.PluginManager.AssembliesChanged += PluginManagerAssembliesChanged;
+        }
+
+        private void PluginManagerAssembliesChanged(object? sender, EventArgs e)
+        {
+            InitializeDriverContainerScope();
+            DetectTablets().Wait();
+            SetSettings(Settings).Wait();
         }
 
         private static IEnumerable<string> safeGetProcessDetails(Process[] processes)
@@ -183,14 +192,20 @@ namespace OpenTabletDriver.Daemon
 
             AppInfo.PluginManager.Load();
 
+            InitializeDriverContainerScope();
+
+            return Task.CompletedTask;
+        }
+
+        private void InitializeDriverContainerScope()
+        {
             _driverContainerScope?.Dispose();
+
             DriverContainerScope = AppInfo.PluginManager.Container?.BeginLifetimeScope(c =>
             {
                 c.RegisterInstance<IDriverDaemon>(this);
                 c.RegisterInstance<IDriver>(this.Driver);
             });
-
-            return Task.CompletedTask;
         }
 
         public Task<bool> InstallPlugin(string filePath)

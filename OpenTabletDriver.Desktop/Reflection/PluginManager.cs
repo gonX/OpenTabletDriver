@@ -78,7 +78,7 @@ namespace OpenTabletDriver.Desktop.Reflection
         protected virtual void RegisterContainer()
         {
             ContainerBuilder = new();
-            foreach (var t in internalTypes)
+            foreach (var t in pluginTypes)
             {
                 if (_bannedAutoloadTypes.Any(autoloadType => t.IsAssignableTo(autoloadType)))
                     continue; // skip banned types

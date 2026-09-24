@@ -76,10 +76,13 @@ namespace OpenTabletDriver.Desktop.Reflection
 
         public void Load()
         {
+            Container?.Dispose();
+
             foreach (var dir in PluginDirectory.GetDirectories())
                 LoadPlugin(dir);
 
-            Container?.Dispose();
+            RegisterContainer();
+
             Container = ContainerBuilder.Build();
             AssembliesChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -142,12 +145,7 @@ namespace OpenTabletDriver.Desktop.Reflection
                     var pluginTypeInfo = type.GetTypeInfo();
 
                     if (!pluginTypes.Contains(pluginTypeInfo))
-                    {
                         pluginTypes.Add(pluginTypeInfo);
-                        Debug.Assert(!string.IsNullOrEmpty(pluginTypeInfo.FullName));
-                        var keyType = pluginTypeInfo.ImplementedInterfaces.FirstOrDefault() ?? type;
-                        ContainerBuilder.RegisterType(type).AsSelf().AsImplementedInterfaces().Keyed(pluginTypeInfo.FullName, keyType);
-                    }
                 }
                 catch
                 {
@@ -205,7 +203,16 @@ namespace OpenTabletDriver.Desktop.Reflection
                 Directory.Delete(TemporaryDirectory.FullName, true);
 
             if (result)
+            {
                 LoadPlugin(pluginDir);
+
+                Container?.Dispose();
+
+                RegisterContainer();
+
+                Container = ContainerBuilder.Build();
+                AssembliesChanged?.Invoke(this, EventArgs.Empty);
+            }
 
             return result;
         }
@@ -280,11 +287,20 @@ namespace OpenTabletDriver.Desktop.Reflection
 
         public bool UnloadPlugin(DesktopPluginContext context)
         {
-            // TODO: this is probably funky with new DI
             Log.Write("Plugin", $"Unloading plugin '{context.FriendlyName}'", LogLevel.Debug);
+
+            Container?.Dispose();
+
             Plugins.Remove(context);
+
+            var removalSuccessful = context.Assemblies.All(RemoveAllTypesForAssembly);
+
+            RegisterContainer();
+            Container = ContainerBuilder.Build();
+
             AssembliesChanged?.Invoke(this, EventArgs.Empty);
-            return context.Assemblies.All(RemoveAllTypesForAssembly);
+
+            return removalSuccessful;
         }
 
         public bool RemoveAllTypesForAssembly(Assembly asm)
