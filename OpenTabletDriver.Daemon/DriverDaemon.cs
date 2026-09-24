@@ -147,7 +147,7 @@ namespace OpenTabletDriver.Daemon
         }
 
         private Collection<ITool> Tools { set; get; } = new Collection<ITool>();
-        private readonly IUpdater? Updater = DesktopInterop.Updater;
+        private IUpdater? Updater { get; } = DesktopInterop.Updater;
         private readonly ISleepDetector? SleepDetector = new SleepDetector();
         private Settings? lastValidSettings;
 
