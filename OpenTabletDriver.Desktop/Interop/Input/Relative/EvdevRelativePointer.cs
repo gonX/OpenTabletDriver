@@ -5,6 +5,7 @@ using OpenTabletDriver.Native.Linux.Evdev;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Platform.Pointer;
+using OpenTabletDriver.Plugin.Tablet;
 
 namespace OpenTabletDriver.Desktop.Interop.Input.Relative
 {
@@ -13,9 +14,11 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Relative
     public class EvdevRelativePointer : EvdevVirtualMouse, IRelativePointer
     {
         [SetsRequiredMembers]
-        public EvdevRelativePointer()
+        public EvdevRelativePointer(TabletReference tabletReference)
         {
-            Device = new EvdevDevice("OpenTabletDriver Virtual Mouse");
+            var tabletName = tabletReference.Properties.Name;
+            var deviceName = $"OpenTabletDriver {tabletName} Mouse";
+            Device = new EvdevDevice(deviceName);
 
             Device.EnableTypeCodes(
                 EventType.EV_REL,
@@ -36,16 +39,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Relative
                 EventCode.BTN_EXTRA
             );
 
-            var result = Device.Initialize();
-            switch (result)
-            {
-                case ERRNO.NONE:
-                    Log.Debug("Evdev", $"Successfully initialized virtual mouse. (code {result})");
-                    break;
-                default:
-                    Log.WriteNotify("Evdev", $"Failed to initialize virtual mouse. (error code {result})", LogLevel.Error);
-                    break;
-            }
+            Device.InitializeAndLog();
         }
 
         private Vector2 error;

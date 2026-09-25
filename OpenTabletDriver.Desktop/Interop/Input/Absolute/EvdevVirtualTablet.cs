@@ -35,7 +35,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
         public unsafe EvdevVirtualTablet(IVirtualScreen virtualScreen, TabletReference tabletReference)
         {
             var name = tabletReference.Properties.Name;
-            var deviceName = $"OpenTabletDriver Virtual Artist Tablet for {name}";
+            var deviceName = $"OpenTabletDriver {name} Artist Tablet";
             Device = new EvdevDevice(deviceName);
 
             Device.EnableProperty(InputProperty.INPUT_PROP_DIRECT);
@@ -96,16 +96,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
                 supportedEventCodes
             );
 
-            var result = Device.Initialize();
-            switch (result)
-            {
-                case ERRNO.NONE:
-                    Log.Debug("Evdev", $"Successfully initialized {deviceName}");
-                    break;
-                default:
-                    Log.WriteNotify("Evdev", $"Failed to initialize '{deviceName}' (error code {result})", LogLevel.Error);
-                    break;
-            }
+            Device.InitializeAndLog();
         }
 
         private const int MaxPressure = ushort.MaxValue;

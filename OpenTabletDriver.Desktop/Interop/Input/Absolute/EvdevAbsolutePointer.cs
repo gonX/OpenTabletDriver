@@ -8,6 +8,7 @@ using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Platform.Display;
 using OpenTabletDriver.Plugin.Platform.Pointer;
+using OpenTabletDriver.Plugin.Tablet;
 
 namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 {
@@ -16,9 +17,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
     public class EvdevAbsolutePointer : EvdevVirtualMouse, IAbsolutePointer
     {
         [SetsRequiredMembers]
-        public unsafe EvdevAbsolutePointer(IVirtualScreen virtualScreen)
+        public unsafe EvdevAbsolutePointer(IVirtualScreen virtualScreen, TabletReference tabletReference)
         {
-            var deviceName = "OpenTabletDriver Virtual Tablet";
+            var tabletName = tabletReference.Properties.Name;
+            var deviceName = $"OpenTabletDriver {tabletName} Absolute Pointer";
             Device = new EvdevDevice(deviceName);
 
             Device.EnableType(EventType.EV_ABS);
@@ -55,16 +57,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
                 EventCode.REL_HWHEEL_HI_RES
             );
 
-            var result = Device.Initialize();
-            switch (result)
-            {
-                case ERRNO.NONE:
-                    Log.Debug("Evdev", $"Successfully initialized '{deviceName}'");
-                    break;
-                default:
-                    Log.WriteNotify("Evdev", $"Failed to initialize '{deviceName}': {result}", LogLevel.Error);
-                    break;
-            }
+            Device.InitializeAndLog();
         }
 
         public void SetPosition(Vector2 pos)

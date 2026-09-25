@@ -32,9 +32,11 @@ public sealed class EvdevVirtualPad : IVirtualPad, IDisposable
 
     private static readonly EventCode[] s_SupportedEventCodes = s_ValidButtons.Values.ToArray();
 
-    public unsafe EvdevVirtualPad()
+    public unsafe EvdevVirtualPad(TabletReference tabletReference)
     {
-        Device = new EvdevDevice("OpenTabletDriver Virtual Pad");
+        var tabletName = tabletReference.Properties.Name;
+        var deviceName = $"OpenTabletDriver {tabletName} Pad";
+        Device = new EvdevDevice(deviceName);
 
         // we want to send ABS_MISC on button presses to match wacom driver behavior
         var miscInfo = new input_absinfo(); // intentionally empty
@@ -62,16 +64,7 @@ public sealed class EvdevVirtualPad : IVirtualPad, IDisposable
 
         Device.EnableTypeCodes(EventType.EV_KEY, s_SupportedEventCodes);
 
-        var result = Device.Initialize();
-        switch (result)
-        {
-            case ERRNO.NONE:
-                Log.Debug("Evdev", "Successfully initialized virtual pad");
-                break;
-            default:
-                Log.Write("Evdev", $"Failed to initialize virtual pad. (error code {result})", LogLevel.Error);
-                break;
-        }
+        Device.InitializeAndLog();
     }
 
     private EvdevDevice Device { set; get; }
