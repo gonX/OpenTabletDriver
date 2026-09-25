@@ -68,6 +68,8 @@ namespace OpenTabletDriver.Desktop.Reflection
 
         /// <summary>
         /// Apply <see cref="Settings"/> values for <see cref="PropertyAttribute"/> properties
+        /// <para/>
+        /// Also runs any methods in object type decorated with <see cref="OnPropertiesLoadedAttribute"/>
         /// </summary>
         /// <param name="target">The target to apply settings for</param>
         public void ApplySettings(object? target)
@@ -90,6 +92,14 @@ namespace OpenTabletDriver.Desktop.Reflection
                         property.SetValue(target, defaults.Value);
                 }
             }
+
+            var methods = from method in target.GetType().GetMethods()
+                let attr = method.GetCustomAttribute<OnPropertiesLoadedAttribute>()
+                where attr != null
+                select method;
+
+            foreach (var method in methods)
+                method.Invoke(target, null);
         }
 
         private static ObservableCollection<PluginSetting> GetSettingsForType(Type targetType, object? source = null)
