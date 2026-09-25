@@ -94,9 +94,9 @@ namespace OpenTabletDriver.Desktop.Reflection
             }
 
             var methods = from method in target.GetType().GetMethods()
-                let attr = method.GetCustomAttribute<OnPropertiesLoadedAttribute>()
-                where attr != null
-                select method;
+                          let attr = method.GetCustomAttribute<OnPropertiesLoadedAttribute>()
+                          where attr != null
+                          select method;
 
             foreach (var method in methods)
                 method.Invoke(target, null);
