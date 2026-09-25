@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Autofac;
 using OpenTabletDriver.Desktop.Interop.Timer;
+using OpenTabletDriver.Desktop.Reflection.Autofac;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Platform.Display;
@@ -85,7 +86,14 @@ namespace OpenTabletDriver.Desktop.Reflection
 
                 Type keyType = t.ImplementedInterfaces.FirstOrDefault() ?? t;
 
-                var key = ContainerBuilder.RegisterType(t).AsSelf().AsImplementedInterfaces().Keyed(t.FullName, keyType);
+                var key =
+                        ContainerBuilder
+                            .RegisterType(t)
+                            .AsSelf()
+                            .AsImplementedInterfaces()
+                            .Keyed(t.FullName, keyType)
+                            .UsingConstructor(new OTDConstructorSelector())
+                    ;
                 if (t.ImplementedInterfaces.Contains(typeof(IBinding))) // otherwise IStateBindings won't be picked up by key
                     key.Keyed<IBinding>(t.FullName);
                 if (_scopedAutoloadTypes.Any(at => t.IsAssignableTo(at))) // TODO: can simplifyy any() lambda

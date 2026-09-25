@@ -12,13 +12,23 @@ namespace OpenTabletDriver.Desktop.Binding
 {
     [PluginName(PluginName)]
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-    public class AdaptiveBinding(IPenActionHandler penActionHandler, IMouseButtonHandler mouseButtonHandler) : IStateBinding
+    public class AdaptiveBinding : IStateBinding
     {
         private const string PluginName = "Adaptive Binding";
 
-        public IPenActionHandler? PenActionHandler { set; get; } = penActionHandler;
+        public AdaptiveBinding(IPenActionHandler penActionHandler)
+        {
+            PenActionHandler = penActionHandler;
+        }
 
-        public IMouseButtonHandler? MouseButtonHandler { set; get; } = mouseButtonHandler;
+        public AdaptiveBinding(IMouseButtonHandler mouseButtonHandler)
+        {
+            MouseButtonHandler = mouseButtonHandler;
+        }
+
+        public IPenActionHandler? PenActionHandler { set; get; }
+
+        public IMouseButtonHandler? MouseButtonHandler { set; get; }
 
         public static string[] ButtonNames => ValidButtons.Keys.ToArray();
 
