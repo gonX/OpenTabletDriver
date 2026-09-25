@@ -6,6 +6,7 @@ using Autofac;
 using Newtonsoft.Json;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
+using OpenTabletDriver.Plugin.DependencyInjection;
 
 namespace OpenTabletDriver.Desktop.Reflection
 {
@@ -93,13 +94,8 @@ namespace OpenTabletDriver.Desktop.Reflection
                 }
             }
 
-            var methods = from method in target.GetType().GetMethods()
-                          let attr = method.GetCustomAttribute<OnPropertiesLoadedAttribute>()
-                          where attr != null
-                          select method;
-
-            foreach (var method in methods)
-                method.Invoke(target, null);
+            if (target is IPropertiesInitialized propertiesInitialized)
+                propertiesInitialized.PropertiesInitialized();
         }
 
         private static ObservableCollection<PluginSetting> GetSettingsForType(Type targetType, object? source = null)
