@@ -126,7 +126,7 @@ namespace OpenTabletDriver.Devices
 
                     if (parsed is not { } report) continue;
 
-                    if (RawClone && RawReport != null)
+                    if (RawClone)
                         OnRawReport(report);
                     OnReport(report);
                 }
