@@ -432,10 +432,10 @@ namespace OpenTabletDriver.Daemon
             };
 
             var pluginElements = (from store in profile.Filters
-                    where store is { Enable: true }
-                    let filter = store!.Construct<IPositionedPipelineElement<IDeviceReport>>(outputMode.Tablet)
-                    where filter != null
-                    select filter
+                                  where store is { Enable: true }
+                                  let filter = store!.Construct<IPositionedPipelineElement<IDeviceReport>>(outputMode.Tablet)
+                                  where filter != null
+                                  select filter
                 ).ToLookup(x => x.Position);
 
             var internalElements = pluginElements[PipelinePosition.Internal].Append(pressureRewriteFilter);
