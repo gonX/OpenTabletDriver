@@ -431,20 +431,34 @@ namespace OpenTabletDriver.Daemon
                 MaxPenPressure = dev.Properties.Specifications.Pen.MaxPressure,
             };
 
-            var elements = (from store in profile.Filters
-                            where store is { Enable: true }
-                            let filter = store!.Construct<IPositionedPipelineElement<IDeviceReport>>(outputMode.Tablet)
-                            where filter != null
-                            select filter!).ToArray();
+            var pluginElements = (from store in profile.Filters
+                    where store is { Enable: true }
+                    let filter = store!.Construct<IPositionedPipelineElement<IDeviceReport>>(outputMode.Tablet)
+                    where filter != null
+                    select filter
+                ).ToLookup(x => x.Position);
 
-            outputMode.Elements = elements.Prepend(pressureRewriteFilter).Append(bindingHandler).ToList();
+            var internalElements = pluginElements[PipelinePosition.Internal].Append(pressureRewriteFilter);
 
-            foreach (var filter in elements)
+            var laterElements = pluginElements
+                .Where(x => x.Key != PipelinePosition.Internal)
+                .SelectMany(x => x);
+
+            outputMode.Elements = [
+                .. internalElements,
+                .. laterElements,
+                bindingHandler,
+            ];
+
+            foreach (var grouping in pluginElements)
             {
-                var pluginSettings = profile.Filters.First(x => x?.Path == filter.GetType().FullName);
-                if (pluginSettings == null) continue;
+                foreach (var filter in grouping)
+                {
+                    var pluginSettings = profile.Filters.First(x => x?.Path == filter.GetType().FullName);
+                    if (pluginSettings == null) continue;
 
-                Log.Write(group, $"Filter Settings {pluginSettings.GetHumanReadableString()}");
+                    Log.Write(group, $"Filter Settings {pluginSettings.GetHumanReadableString()}");
+                }
             }
         }
 
