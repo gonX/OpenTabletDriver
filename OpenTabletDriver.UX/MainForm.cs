@@ -426,11 +426,11 @@ namespace OpenTabletDriver.UX
             // Load the application information from the daemon
             AppInfo.Current = await App.Driver.Instance.GetApplicationInfo();
 
-            AppInfo.PluginManager = new DesktopPluginManager();
-            AppInfo.PresetManager = new PresetManager();
+            Static.PluginManager = new DesktopPluginManager();
+            Static.PresetManager = new PresetManager();
 
             // Load any new plugins
-            AppInfo.PluginManager.Load();
+            Static.PluginManager.Load();
 
             // Show the startup greeter
             if (!File.Exists(AppInfo.Current.SettingsFile) && this.WindowState != WindowState.Minimized)
@@ -643,7 +643,7 @@ namespace OpenTabletDriver.UX
             }
         }
 
-        private static void LoadPresets() => AppInfo.PresetManager.Refresh();
+        private static void LoadPresets() => Static.PresetManager.Refresh();
 
         private Task RefreshPresets()
         {
@@ -653,7 +653,7 @@ namespace OpenTabletDriver.UX
                 trayIcon.RefreshMenuItems();
 
             // Update File submenu
-            var presets = AppInfo.PresetManager.GetPresets();
+            var presets = Static.PresetManager.GetPresets();
             var presetsMenu = fullMenu.Items.GetSubmenu("&File").Items.GetSubmenu("Presets") as ButtonMenuItem;
             presetsMenu.Items.Clear();
 
@@ -713,7 +713,7 @@ namespace OpenTabletDriver.UX
             Debug.Assert(App.Driver.IsConnected, "Preset buttons should not be available when daemon isn't connected");
 
             var presetName = buttonMenuItem.Text;
-            var preset = AppInfo.PresetManager.FindPreset(presetName);
+            var preset = Static.PresetManager.FindPreset(presetName);
             Debug.Assert(preset != null, "It should be impossible to select a preset that doesn't exist");
 
             App.Current.Settings = preset.Settings;

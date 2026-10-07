@@ -163,31 +163,31 @@ namespace OpenTabletDriver.Daemon
                 Log.Write("Plugin", $"The plugin directory '{pluginDir.FullName}' has been created");
             }
 
-            AppInfo.PluginManager.Load();
+            Static.PluginManager.Load();
 
             // Add services to inject on plugin construction
-            AppInfo.PluginManager.AddService<IDriver>(() => this.Driver);
-            AppInfo.PluginManager.AddService<IDriverDaemon>(() => this);
+            Static.PluginManager.AddService<IDriver>(() => this.Driver);
+            Static.PluginManager.AddService<IDriverDaemon>(() => this);
 
             return Task.CompletedTask;
         }
 
         public Task<bool> InstallPlugin(string filePath)
         {
-            return Task.FromResult(AppInfo.PluginManager.InstallPlugin(filePath));
+            return Task.FromResult(Static.PluginManager.InstallPlugin(filePath));
         }
 
         // FIXME: needs API bump: IDriverDaemon expects friendlyName but this implementation takes a full path
         public Task<bool> UninstallPlugin(string directoryPath)
         {
-            var plugins = AppInfo.PluginManager.GetLoadedPlugins();
+            var plugins = Static.PluginManager.GetLoadedPlugins();
             var context = plugins.First(ctx => ctx.Directory.FullName == directoryPath);
-            return Task.FromResult(AppInfo.PluginManager.UninstallPlugin(context));
+            return Task.FromResult(Static.PluginManager.UninstallPlugin(context));
         }
 
         public Task<bool> DownloadPlugin(PluginMetadata metadata)
         {
-            return AppInfo.PluginManager.DownloadPlugin(metadata);
+            return Static.PluginManager.DownloadPlugin(metadata);
         }
 
         public Task<IEnumerable<TabletReference>> GetTablets()
@@ -370,7 +370,7 @@ namespace OpenTabletDriver.Daemon
 
         private async Task LoadUserSettings()
         {
-            AppInfo.PluginManager.Clean();
+            Static.PluginManager.Clean();
             await LoadPlugins();
             await DetectTablets();
 

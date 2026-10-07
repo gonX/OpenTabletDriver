@@ -100,7 +100,7 @@ namespace OpenTabletDriver.UX
             }
 
             var items = new List<MenuItem>();
-            var presets = AppInfo.PresetManager.GetPresets();
+            var presets = Static.PresetManager.GetPresets();
 
             if (presets.Count != 0)
             {

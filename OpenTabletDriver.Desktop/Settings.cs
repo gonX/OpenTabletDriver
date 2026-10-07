@@ -64,7 +64,7 @@ namespace OpenTabletDriver.Desktop
         private static ProfileCollection GetDefaultProfiles()
         {
             // nullable warning suppressed because IDriver should always be provided by DI
-            return new ProfileCollection(AppInfo.PluginManager.GetService<IDriver>()!.Tablets);
+            return new ProfileCollection(Static.PluginManager.GetService<IDriver>()!.Tablets);
         }
 
         #region Custom Serialization

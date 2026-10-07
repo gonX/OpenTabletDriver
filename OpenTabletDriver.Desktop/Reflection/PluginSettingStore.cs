@@ -42,7 +42,7 @@ namespace OpenTabletDriver.Desktop.Reflection
         public string? Path { set; get; }
 
         [JsonIgnore]
-        public string? Name => Path != null ? AppInfo.PluginManager.GetFriendlyName(Path) : null;
+        public string? Name => Path != null ? Static.PluginManager.GetFriendlyName(Path) : null;
 
         public ObservableCollection<PluginSetting> Settings { set; get; }
 
@@ -56,7 +56,7 @@ namespace OpenTabletDriver.Desktop.Reflection
                 return null;
             }
 
-            var obj = AppInfo.PluginManager.ConstructObject<T>(Path);
+            var obj = Static.PluginManager.ConstructObject<T>(Path);
             ApplySettings(obj);
             if (trigger)
                 TriggerEventMethods(obj, tabletReference);
@@ -73,7 +73,7 @@ namespace OpenTabletDriver.Desktop.Reflection
 
         public static PluginSettingStore? FromPath(string? path)
         {
-            var pathType = AppInfo.PluginManager.PluginTypes.FirstOrDefault(t => t.FullName == path);
+            var pathType = Static.PluginManager.PluginTypes.FirstOrDefault(t => t.FullName == path);
             return pathType != null ? new PluginSettingStore(pathType) : null;
         }
 
@@ -162,12 +162,12 @@ namespace OpenTabletDriver.Desktop.Reflection
 
         public TypeInfo? GetTypeInfo()
         {
-            return AppInfo.PluginManager.PluginTypes.FirstOrDefault(t => t.FullName == Path);
+            return Static.PluginManager.PluginTypes.FirstOrDefault(t => t.FullName == Path);
         }
 
         public TypeInfo? GetTypeInfo<T>()
         {
-            return AppInfo.PluginManager.GetChildTypes<T>().FirstOrDefault(t => t.FullName == Path);
+            return Static.PluginManager.GetChildTypes<T>().FirstOrDefault(t => t.FullName == Path);
         }
 
         private static void TriggerEventMethods(object? obj, TabletReference? tabletReference)

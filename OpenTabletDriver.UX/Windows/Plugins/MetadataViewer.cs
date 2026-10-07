@@ -42,7 +42,7 @@ namespace OpenTabletDriver.UX.Windows.Plugins
             var installedBinding = new DelegateBinding<bool>(
                 () =>
                 {
-                    var contexts = AppInfo.PluginManager.GetLoadedPlugins();
+                    var contexts = Static.PluginManager.GetLoadedPlugins();
                     return contexts.Any(t => PluginMetadata.Match(t.GetMetadata(), Metadata));
                 },
                 addChangeEvent: (e) => MetadataChanged += e,
@@ -164,7 +164,7 @@ namespace OpenTabletDriver.UX.Windows.Plugins
             wiki.GetEnabledBinding().Bind(MetadataBinding.Child(c => c!.WikiUrl).Convert(c => c != null));
             wiki.Click += (_, _) => DesktopInterop.Open(Metadata!.WikiUrl!);
 
-            AppInfo.PluginManager.AssembliesChanged += HandleAssembliesChanged;
+            Static.PluginManager.AssembliesChanged += HandleAssembliesChanged;
         }
 
         private Control content;

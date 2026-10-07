@@ -49,7 +49,7 @@ namespace OpenTabletDriver.UX.Controls
             if (!Platform.IsMac) // Don't do this on macOS, causes poor UI performance.
                 settingStoreEditor.BackgroundColor = SystemColors.WindowBackground;
 
-            AppInfo.PluginManager.AssembliesChanged += HandleAssembliesChanged;
+            Static.PluginManager.AssembliesChanged += HandleAssembliesChanged;
         }
 
         private Placeholder placeholder;
@@ -80,7 +80,7 @@ namespace OpenTabletDriver.UX.Controls
 
         private void RefreshContent()
         {
-            var types = AppInfo.PluginManager.GetChildTypes<TSource>();
+            var types = Static.PluginManager.GetChildTypes<TSource>();
             var sortedTypes = new ReadOnlyCollection<TypeInfo>([.. types.OrderBy(t => t.GetFriendlyName())]);
 
             var oldSelected = sourceSelector.SelectedItem;

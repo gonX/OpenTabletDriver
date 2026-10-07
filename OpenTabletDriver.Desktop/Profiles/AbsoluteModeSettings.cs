@@ -46,7 +46,7 @@ namespace OpenTabletDriver.Desktop.Profiles
 
         public static AbsoluteModeSettings GetDefaults(DigitizerSpecifications digitizer)
         {
-            var display = AppInfo.PluginManager.GetService<IVirtualScreen>() ?? throw new InvalidOperationException($"Could not get {nameof(IVirtualScreen)} from DI");
+            var display = Static.PluginManager.GetService<IVirtualScreen>() ?? throw new InvalidOperationException($"Could not get {nameof(IVirtualScreen)} from DI");
 
             return new AbsoluteModeSettings
             {

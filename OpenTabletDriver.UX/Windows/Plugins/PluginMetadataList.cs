@@ -19,7 +19,7 @@ namespace OpenTabletDriver.UX.Windows.Plugins
             ItemTextBinding = Binding.Property<PluginMetadata, string>(m => m.Installed ? $"✓ {m.Name}" : m.Name);
 
             Refresh();
-            AppInfo.PluginManager.AssembliesChanged += (sender, e) => Refresh();
+            Static.PluginManager.AssembliesChanged += (sender, e) => Refresh();
         }
 
         public static PluginMetadataCollection? Repository { private set; get; }
@@ -43,7 +43,7 @@ namespace OpenTabletDriver.UX.Windows.Plugins
 
             var selected = this.SelectedItem;
 
-            var local = from ctx in AppInfo.PluginManager.GetLoadedPlugins()
+            var local = from ctx in Static.PluginManager.GetLoadedPlugins()
                         orderby ctx.FriendlyName
                         select ctx.GetMetadata();
 

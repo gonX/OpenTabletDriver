@@ -92,13 +92,13 @@ namespace OpenTabletDriver.UX.Windows.Plugins
                 if (await App.Driver.Instance.DownloadPlugin(metadata))
                 {
                     pluginList.SelectFirstOrDefault((m => PluginMetadata.Match(m, metadata)));
-                    var contexts = AppInfo.PluginManager.GetLoadedPlugins();
+                    var contexts = Static.PluginManager.GetLoadedPlugins();
                     // Unload then reload the plugins
                     var current = contexts.FirstOrDefault((c => PluginMetadata.Match(c.GetMetadata(), metadata)));
                     if (current != null)
                         UnloadPlugin(current);
 
-                    AppInfo.PluginManager.Load();
+                    Static.PluginManager.Load();
                 }
                 return true;
             }
@@ -125,7 +125,7 @@ namespace OpenTabletDriver.UX.Windows.Plugins
 
         private static void UnloadPlugin(DesktopPluginContext dpc)
         {
-            AppInfo.PluginManager.UnloadPlugin(dpc);
+            Static.PluginManager.UnloadPlugin(dpc);
             RemovePluginsFromFriendlyNameCache(dpc.Assemblies);
         }
 
@@ -139,7 +139,7 @@ namespace OpenTabletDriver.UX.Windows.Plugins
 
             if (await App.Driver.Instance.InstallPlugin(path))
             {
-                AppInfo.PluginManager.Load();
+                Static.PluginManager.Load();
             }
             else
             {
@@ -155,7 +155,7 @@ namespace OpenTabletDriver.UX.Windows.Plugins
                 return false;
             }
 
-            var context = AppInfo.PluginManager.GetLoadedPlugins().First(
+            var context = Static.PluginManager.GetLoadedPlugins().First(
                 c => PluginMetadata.Match(c.GetMetadata(), metadata)
             );
 

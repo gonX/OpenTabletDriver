@@ -66,7 +66,7 @@ namespace OpenTabletDriver.Console
         static async Task ListTypes<T>(Func<Type, bool>? predicate = null)
         {
             if (!await EnsureDaemonReady()) return;
-            var types = AppInfo.PluginManager.GetChildTypes<T>();
+            var types = Static.PluginManager.GetChildTypes<T>();
             if (types.Count == 0)
             {
                 await Out.WriteAsync("No types found\n");
@@ -80,7 +80,7 @@ namespace OpenTabletDriver.Console
                     if (type.FullName == null)
                         throw new InvalidOperationException($"Could not look up name for type {type}");
 
-                    var name = AppInfo.PluginManager.GetFriendlyName(type.FullName);
+                    var name = Static.PluginManager.GetFriendlyName(type.FullName);
                     var output = string.IsNullOrWhiteSpace(name) ? type.FullName : $"{type.FullName} [{name}]";
                     await Out.WriteLineAsync(output);
                 }

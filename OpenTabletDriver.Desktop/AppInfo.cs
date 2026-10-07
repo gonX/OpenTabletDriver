@@ -71,10 +71,6 @@ namespace OpenTabletDriver.Desktop
             };
         }
 
-        public static DesktopPluginManager PluginManager { set; get; } = new DesktopPluginManager();
-
-        public static PresetManager PresetManager { set; get; } = new PresetManager();
-
         public Version Version { set; get; } = assemblyVersion;
 
         public string? CommandLineAppDataDirectory

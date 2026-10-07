@@ -14,19 +14,19 @@ namespace OpenTabletDriver.UX.Controls.Generic.Reflection
             this.ItemTextBinding = Binding.Property<TypeInfo, string>(t => t.GetFriendlyName());
             this.ItemKeyBinding = Binding.Property<TypeInfo, string>(t => t.FullName!);
 
-            AppInfo.PluginManager.AssembliesChanged += HandleAssembliesChanged;
+            Static.PluginManager.AssembliesChanged += HandleAssembliesChanged;
         }
 
         public T? ConstructSelectedType()
         {
-            return SelectedItem != null ? AppInfo.PluginManager.ConstructObject<T>(SelectedItem.FullName!) : null;
+            return SelectedItem != null ? Static.PluginManager.ConstructObject<T>(SelectedItem.FullName!) : null;
         }
 
         public void Select(Func<T?, bool> predicate)
         {
             foreach (TypeInfo type in DataStore)
             {
-                var obj = AppInfo.PluginManager.ConstructObject<T>(type.FullName!);
+                var obj = Static.PluginManager.ConstructObject<T>(type.FullName!);
                 if (predicate(obj))
                 {
                     this.SelectedValue = type;
@@ -37,7 +37,7 @@ namespace OpenTabletDriver.UX.Controls.Generic.Reflection
 
         protected override IEnumerable<object> CreateDefaultDataStore()
         {
-            var query = from type in AppInfo.PluginManager.GetChildTypes<T>()
+            var query = from type in Static.PluginManager.GetChildTypes<T>()
                         orderby type.GetFriendlyName()
                         select type;
             return query.ToList();

@@ -64,7 +64,7 @@ namespace OpenTabletDriver.Console
             if (!await EnsureDaemonReady()) return;
             GetAndRefreshPresetDirectory();
 
-            var preset = AppInfo.PresetManager.FindPreset(name);
+            var preset = Static.PresetManager.FindPreset(name);
             if (preset == null) throw new ArgumentException($"Preset {name} not found");
             await ApplySettings(preset.Settings);
         }
@@ -97,7 +97,7 @@ namespace OpenTabletDriver.Console
             if (!presetDir.Exists)
                 presetDir.Create();
 
-            AppInfo.PresetManager.Refresh();
+            Static.PresetManager.Refresh();
 
             return presetDir;
         }
@@ -199,7 +199,7 @@ namespace OpenTabletDriver.Console
         {
             await ModifyProfile(tablet, p =>
             {
-                var tipBinding = AppInfo.PluginManager.ConstructObject<IBinding>(name) ?? throw new InvalidOperationException($"Could not construct binding with name {name}");
+                var tipBinding = Static.PluginManager.ConstructObject<IBinding>(name) ?? throw new InvalidOperationException($"Could not construct binding with name {name}");
 
                 p.BindingSettings.TipButton = new PluginSettingStore(tipBinding);
                 p.BindingSettings.TipActivationThreshold = threshold;
@@ -210,7 +210,7 @@ namespace OpenTabletDriver.Console
         {
             await ModifyProfile(tablet, p =>
             {
-                var binding = AppInfo.PluginManager.ConstructObject<IBinding>(name) ?? throw new InvalidOperationException($"Could not construct binding with name {name}");
+                var binding = Static.PluginManager.ConstructObject<IBinding>(name) ?? throw new InvalidOperationException($"Could not construct binding with name {name}");
 
                 p.BindingSettings.PenButtons[index] = new PluginSettingStore(binding);
             });
@@ -220,7 +220,7 @@ namespace OpenTabletDriver.Console
         {
             await ModifyProfile(tablet, p =>
             {
-                var binding = AppInfo.PluginManager.ConstructObject<IBinding>(name) ?? throw new InvalidOperationException($"Could not construct binding with name {name}");
+                var binding = Static.PluginManager.ConstructObject<IBinding>(name) ?? throw new InvalidOperationException($"Could not construct binding with name {name}");
 
                 p.BindingSettings.AuxButtons[index] = new PluginSettingStore(binding);
             });
@@ -421,7 +421,7 @@ namespace OpenTabletDriver.Console
         private static async Task UninstallPlugin(string folderName)
         {
             if (!await EnsureDaemonReady()) return;
-            var context = AppInfo.PluginManager.GetLoadedPlugins().First(x => x.Directory.Name == folderName);
+            var context = Static.PluginManager.GetLoadedPlugins().First(x => x.Directory.Name == folderName);
             await Driver.Instance!.UninstallPlugin(context.Directory.FullName);
         }
 
@@ -463,15 +463,15 @@ namespace OpenTabletDriver.Console
 
         private static async Task ListPresets()
         {
-            AppInfo.PresetManager.Refresh();
-            foreach (var preset in AppInfo.PresetManager.GetPresets())
+            Static.PresetManager.Refresh();
+            foreach (var preset in Static.PresetManager.GetPresets())
                 await Out.WriteLineAsync(preset.Name);
         }
 
         private static async Task ListPlugins()
         {
             if (!await EnsureDaemonReady()) return;
-            foreach (var dir in AppInfo.PluginManager.PluginDirectory.EnumerateDirectories())
+            foreach (var dir in Static.PluginManager.PluginDirectory.EnumerateDirectories())
                 await Out.WriteLineAsync(dir.Name);
         }
 

@@ -30,7 +30,7 @@ namespace OpenTabletDriver.Console
             if (!pluginsLoaded)
             {
                 pluginsLoaded = true;
-                AppInfo.PluginManager.Load();
+                Static.PluginManager.Load();
             }
 
             return true;

@@ -15,7 +15,7 @@ namespace OpenTabletDriver.Desktop.Binding
         private const int TIMEOUT = 50;
         private readonly static HPETDeltaStopwatch _stopwatch = new();
 
-        public readonly static IReadOnlyCollection<Preset> Presets = AppInfo.PresetManager.GetPresets();
+        public readonly static IReadOnlyCollection<Preset> Presets = Static.PresetManager.GetPresets();
         public static string[] ValidPresets => Presets.Select(x => x.Name).ToArray();
 
         [Property("Preset"), PropertyValidated(nameof(ValidPresets))]
@@ -29,9 +29,9 @@ namespace OpenTabletDriver.Desktop.Binding
             if (Preset != null && _stopwatch.Elapsed.Milliseconds > TIMEOUT)
             {
                 // Force a refresh, preset list may be out of date
-                AppInfo.PresetManager.Refresh();
+                Static.PresetManager.Refresh();
 
-                var preset = AppInfo.PresetManager.FindPreset(Preset);
+                var preset = Static.PresetManager.FindPreset(Preset);
 
                 if (preset != null && Daemon != null)
                 {

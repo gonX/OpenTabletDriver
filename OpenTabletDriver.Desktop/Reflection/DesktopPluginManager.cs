@@ -70,7 +70,7 @@ namespace OpenTabletDriver.Desktop.Reflection
             foreach (var dir in PluginDirectory.GetDirectories())
                 LoadPlugin(dir);
 
-            AppInfo.PluginManager.ResetServices();
+            Static.PluginManager.ResetServices();
             AssembliesChanged?.Invoke(this, EventArgs.Empty);
         }
 
