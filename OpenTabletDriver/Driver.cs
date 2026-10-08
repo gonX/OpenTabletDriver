@@ -83,6 +83,8 @@ namespace OpenTabletDriver
                     }
                 }
 
+                Log.Write("Detect", "Searching for tablets finished");
+
                 // atomically update InputDevices
                 var oldDevices = _inputDeviceTrees;
                 _inputDeviceTrees = treeBuilder.ToImmutable();
