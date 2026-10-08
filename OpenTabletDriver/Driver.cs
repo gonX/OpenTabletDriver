@@ -100,7 +100,13 @@ namespace OpenTabletDriver
 
         protected virtual InputDeviceTree? Match(TabletConfiguration config)
         {
+#if DEBUG
+            // having this on release builds makes diagnostics quite unwieldy,
+            //   and makes searching issues for a specific supported tablet confusing as anyone who posted a
+            //   raw diagnostics file as text in another issue makes that issue unrelatedly show up for those searched
             Log.Debug("Detect", $"Searching for tablet '{config.Name}'");
+#endif
+
             try
             {
                 var devices = new List<InputDevice>();
