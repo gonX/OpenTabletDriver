@@ -28,7 +28,7 @@ namespace OpenTabletDriver.Plugin.Output
         [Resolved]
         public ITimer? Scheduler
         {
-            set
+            init
             {
                 this.scheduler = value;
 
@@ -163,7 +163,6 @@ namespace OpenTabletDriver.Plugin.Output
             if (disposing)
             {
                 Scheduler?.Dispose();
-                Scheduler = null;
             }
 
             _isDisposed = true;
