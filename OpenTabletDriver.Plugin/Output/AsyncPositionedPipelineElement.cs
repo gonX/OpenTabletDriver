@@ -32,6 +32,7 @@ namespace OpenTabletDriver.Plugin.Output
         {
             set
             {
+                if (field != null) throw new NotSupportedException("Changing a timer after it has already been set is not supported yet");
                 field = value;
 
                 if (field != null)
@@ -43,8 +44,6 @@ namespace OpenTabletDriver.Plugin.Output
                             UpdateState();
                         }
                     };
-
-                    field.Interval = 1000 / Frequency;
                     field.Start();
                 }
             }
@@ -56,12 +55,15 @@ namespace OpenTabletDriver.Plugin.Output
         {
             set
             {
-                this.frequency = value;
+                if (value < 101)
+                    Log.Write("Timer", "Low frequency detected, Output may appear choppy. please use 1000hz, 500hz, 250hz or 125hz instead.", LogLevel.Warning);
+
+                this.frequency = MathF.Max(1, value);
                 if (Scheduler != null)
                 {
                     if (Scheduler is { Enabled: true })
                         Scheduler.Stop();
-                    Scheduler.Interval = 1000f / value;
+                    Scheduler.Interval = 1000f / this.frequency;
                     Scheduler.Start();
                 }
             }
@@ -162,10 +164,7 @@ namespace OpenTabletDriver.Plugin.Output
             if (_isDisposed) return;
 
             if (disposing)
-            {
                 Scheduler?.Dispose();
-                Scheduler = null;
-            }
 
             _isDisposed = true;
         }

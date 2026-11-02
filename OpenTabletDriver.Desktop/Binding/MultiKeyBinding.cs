@@ -19,6 +19,7 @@ namespace OpenTabletDriver.Desktop.Binding
         private string? keysString;
 
         [Property("Keys")]
+        [PropertyUnvalidatedStringPlaceholder("e.g. Control+Alt+C")]
         public string? Keys
         {
             set
