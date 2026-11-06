@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Autofac;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
@@ -17,13 +17,15 @@ namespace OpenTabletDriver
 
             foreach (var dev in InputDevices)
             {
+                dev.Report += HandleReport;
+
                 // Hook endpoint states
                 dev.ConnectionStateChanged += (sender, reading) =>
                 {
-                    if (this.connected && !reading)
+                    if (_connected && !reading)
                     {
-                        this.connected = false;
-                        Disconnected?.Invoke(this, new EventArgs());
+                        _connected = false;
+                        Disconnected?.Invoke(this, EventArgs.Empty);
                         LifetimeScope?.Dispose();
                         LifetimeScope = null;
                     }
@@ -31,24 +33,13 @@ namespace OpenTabletDriver
             }
         }
 
-        private bool connected = true;
-        private object sync = new object();
-        private IList<InputDevice> inputDevices;
+        private bool _connected = true;
+        private readonly Lock _sync = new();
 
         public event EventHandler<EventArgs>? Disconnected;
 
         public TabletConfiguration Properties { protected set; get; }
-        public IList<InputDevice> InputDevices
-        {
-            [MemberNotNull(nameof(inputDevices))]
-            protected set
-            {
-                this.inputDevices = value;
-                foreach (var dev in InputDevices)
-                    dev.Report += HandleReport;
-            }
-            get => this.inputDevices;
-        }
+        public IList<InputDevice> InputDevices { get; }
 
         /// <summary>
         /// The active output mode at the end of the data pipeline for all data to be processed.
@@ -59,7 +50,7 @@ namespace OpenTabletDriver
 
         private void HandleReport(object? sender, IDeviceReport report)
         {
-            lock (sync)
+            lock (_sync)
             {
                 OutputMode?.Read(report);
             }
