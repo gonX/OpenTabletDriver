@@ -46,6 +46,10 @@ namespace OpenTabletDriver.Daemon
             };
 
             InitializePlatform();
+
+            Task.Run(loadUserSettings).GetAwaiter().GetResult();
+            Debug.Assert(Settings != null);
+
             Driver.TabletsChanged += (sender, e) => TabletsChanged?.Invoke(sender, e);
             Driver.CompositeDeviceHub.DevicesChanged += async (sender, args) =>
             {
@@ -92,8 +96,6 @@ namespace OpenTabletDriver.Daemon
 
                 Log.WriteNotify("Detect", message.ToString(), LogLevel.Warning);
             }
-
-            LoadUserSettings().Wait();
 
             SleepDetector.Slept += async () =>
             {
@@ -488,6 +490,8 @@ namespace OpenTabletDriver.Daemon
                 if (Settings.Profiles.Any())
                     Settings.Serialize(settingsFile);
             }
+
+            Debug.Assert(Settings != null, "Loading user settings implies that Settings instance has been set, but it has not been set at the end of the function");
         }
 
         private static void MoveSettingsFile()
