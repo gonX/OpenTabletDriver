@@ -5,6 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Autofac;
+using OpenTabletDriver.Plugin;
+using OpenTabletDriver.Plugin.Logging;
 
 namespace OpenTabletDriver.Console
 {
@@ -14,10 +16,28 @@ namespace OpenTabletDriver.Console
     {
         public static async Task Main(string[] args)
         {
+            // wire up log output and connect early to allow daemon to emit our logs
+            Log.Output += handleDaemonOutput;
+            await EnsureDaemonReady();
+
             await Root.Parse(args).InvokeAsync();
         }
 
         private static bool pluginsLoaded;
+
+        private static async void handleDaemonOutput(object? sender, LogMessage logMessage)
+        {
+            try
+            {
+                if (Driver.IsConnected)
+                    await Driver.Instance.WriteMessage(logMessage);
+            }
+            catch (Exception e)
+            {
+                System.Console.Error.WriteLine(e);
+            }
+        }
+
         private static ILifetimeScope? _lifetimeScope;
 
         private static readonly Lazy<RootCommand> root = new Lazy<RootCommand>(GenerateRoot);
