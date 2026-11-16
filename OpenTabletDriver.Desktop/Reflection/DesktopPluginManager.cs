@@ -167,7 +167,11 @@ namespace OpenTabletDriver.Desktop.Reflection
             if (!file.Exists)
                 return false;
 
-            var name = file.Name.Replace(file.Extension, string.Empty);
+            var name = file.Name;
+
+            if (name.IndexOf(filePathInfo.Extension, StringComparison.InvariantCultureIgnoreCase) is var index and > 0)
+                name = name[..index]; // trim extension
+
             var tempDir = new DirectoryInfo(Path.Join(TemporaryDirectory.FullName, name));
 
             // Avoid issues with extracting to an existing directory and installing additional unwanted files
