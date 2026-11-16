@@ -34,7 +34,7 @@ namespace OpenTabletDriver.Desktop.Diagnostics
                 PluginPlatform.Windows => ExtractFromOS(withServicePack: true),
                 PluginPlatform.Linux => GetLinuxOSInfo(),
                 PluginPlatform.MacOS => ExtractFromOS(withServicePack: false),
-                _ => throw new NotImplementedException()
+                _ => throw new ArgumentOutOfRangeException($"{SystemInterop.CurrentPlatform}"),
             };
         }
 
