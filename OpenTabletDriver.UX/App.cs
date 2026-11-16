@@ -188,6 +188,8 @@ namespace OpenTabletDriver.UX
 
         private static void ShowUnhandledException(object? sender, Eto.UnhandledExceptionEventArgs e)
         {
+            if (e.ExceptionObject is ConnectionLostException) return; // daemon disconnected, normal behavior likely handles this.
+
             try
             {
                 var exception = e.ExceptionObject as Exception;
