@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Autofac;
 using Newtonsoft.Json;
@@ -116,6 +115,8 @@ namespace OpenTabletDriver.Console
                 p.AbsoluteModeSettings.Display.Height = height;
                 p.AbsoluteModeSettings.Display.X = x;
                 p.AbsoluteModeSettings.Display.Y = y;
+
+                return Task.CompletedTask;
             });
         }
 
@@ -164,6 +165,7 @@ namespace OpenTabletDriver.Console
                 p.AbsoluteModeSettings.Tablet.X = x;
                 p.AbsoluteModeSettings.Tablet.Y = y;
                 p.AbsoluteModeSettings.Tablet.Rotation = rotation;
+                return Task.CompletedTask;
             });
         }
 
@@ -177,6 +179,7 @@ namespace OpenTabletDriver.Console
                 p.RelativeModeSettings.XSensitivity = xSens;
                 p.RelativeModeSettings.YSensitivity = ySens;
                 p.RelativeModeSettings.RelativeRotation = rotation;
+                return Task.CompletedTask;
             });
         }
 
@@ -188,9 +191,11 @@ namespace OpenTabletDriver.Console
                     throw new InvalidOperationException($"Could not find {nameof(p.RelativeModeSettings)} in profile");
 
                 p.RelativeModeSettings.ResetTime = TimeSpan.FromMilliseconds(ms);
+                return Task.CompletedTask;
             });
         }
 
+        // TODO: SetEraserBinding
         private static async Task SetTipBinding(string tablet, string name, float threshold)
         {
             await ModifyProfile(tablet, p =>
@@ -199,6 +204,7 @@ namespace OpenTabletDriver.Console
 
                 p.BindingSettings.TipButton = new PluginSettingStore(tipBinding);
                 p.BindingSettings.TipActivationThreshold = threshold;
+                return Task.CompletedTask;
             });
         }
 
@@ -209,6 +215,7 @@ namespace OpenTabletDriver.Console
                 var binding = LifetimeScope.ResolveKeyed<IBinding>(name);
 
                 p.BindingSettings.PenButtons[index] = new PluginSettingStore(binding);
+                return Task.CompletedTask;
             });
         }
 
@@ -219,6 +226,7 @@ namespace OpenTabletDriver.Console
                 var binding = LifetimeScope.ResolveKeyed<IBinding>(name);
 
                 p.BindingSettings.AuxButtons[index] = new PluginSettingStore(binding);
+                return Task.CompletedTask;
             });
         }
 
@@ -230,6 +238,7 @@ namespace OpenTabletDriver.Console
                     throw new InvalidOperationException($"Could not find {nameof(p.AbsoluteModeSettings)} in profile");
 
                 p.AbsoluteModeSettings.EnableClipping = isEnabled;
+                return Task.CompletedTask;
             });
         }
 
@@ -241,6 +250,7 @@ namespace OpenTabletDriver.Console
                     throw new InvalidOperationException($"Could not find {nameof(p.AbsoluteModeSettings)} in profile");
 
                 p.AbsoluteModeSettings.EnableAreaLimiting = isEnabled;
+                return Task.CompletedTask;
             });
         }
 
@@ -252,6 +262,7 @@ namespace OpenTabletDriver.Console
                     throw new InvalidOperationException($"Could not find {nameof(p.AbsoluteModeSettings)} in profile");
 
                 p.AbsoluteModeSettings.LockAspectRatio = isEnabled;
+                return Task.CompletedTask;
             });
         }
 
@@ -261,7 +272,11 @@ namespace OpenTabletDriver.Console
             if (outputMode == null)
                 await Out.WriteLineAsync($"Invalid output mode '{path}'. Use paths like in '{nameof(ListOutputModes).ToLower()}'");
             else
-                await ModifyProfile(tablet, p => p.OutputMode = outputMode);
+                await ModifyProfile(tablet, p =>
+                {
+                    p.OutputMode = outputMode;
+                    return Task.CompletedTask;
+                });
         }
 
         private static async Task EnableTabletFilters(string tablet, params string[] filters)
@@ -511,7 +526,6 @@ namespace OpenTabletDriver.Console
                 var settings = await GetSettings();
                 var tempDir = Environment.GetEnvironmentVariable("TEMP") ?? AppInfo.Current.TemporaryDirectory;
                 var tempFile = $"OpenTabletDriver-{Guid.NewGuid()}.json";
-                var sha256 = SHA256.Create();
 
                 var path = Path.Join(tempDir, tempFile);
                 var cmd = $"{editor} {path}";

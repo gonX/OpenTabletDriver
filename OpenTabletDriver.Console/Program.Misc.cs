@@ -27,27 +27,24 @@ namespace OpenTabletDriver.Console
             await Driver.Instance!.SetSettings(settings);
         }
 
-        static async Task ModifySettings(Action<Settings> func)
+        static async Task ModifySettings(Func<Settings, Task> func)
         {
             var settings = await GetSettings();
-            func.Invoke(settings);
+            await func(settings);
             await ApplySettings(settings);
         }
 
-        static async Task ModifyProfile(string profileName, Action<Profile> func)
+        static async Task ModifyProfile(string profileName, Func<Profile, Task> func)
         {
             await ModifySettings(async s =>
             {
                 var profile = await GetProfile(profileName, s);
-                func.Invoke(profile);
+                await func(profile);
             });
         }
 
         static async Task<Profile> GetProfile(string profileName, Settings? settings = null)
         {
-            if (!await EnsureDaemonReady())
-                throw new InvalidOperationException("Cannot get a profile without a daemon");
-
             const StringComparison comparer = StringComparison.InvariantCultureIgnoreCase;
             settings ??= await GetSettings();
 
@@ -58,7 +55,6 @@ namespace OpenTabletDriver.Console
 
         static async Task ListTypes<T>(Func<Type, bool>? predicate = null)
         {
-            if (!await EnsureDaemonReady()) return;
             var types = AppInfo.PluginManager.GetChildTypes<T>();
 
             // use separate variable for tracking to ensure we only increment when the predicate (if any) is successful
@@ -90,7 +86,7 @@ namespace OpenTabletDriver.Console
             return string.Join(null, hash.Select(b => b.ToString("X")));
         }
 
-        static void AppendPluginStoreSettingsCollectionByPaths<T>(PluginSettingStoreCollection pssc, params string[] paths) where T : class
+        static Task appendPluginStoreSettingsCollectionByPaths<T>(PluginSettingStoreCollection pssc, params string[] paths) where T : class
         {
             foreach (var path in paths)
             {
@@ -105,9 +101,11 @@ namespace OpenTabletDriver.Console
                     existing.Enable = true;
                 }
             }
+
+            return Task.CompletedTask;
         }
 
-        static void DisableAllInPluginStoreSettingsCollectionByPaths(PluginSettingStoreCollection pssc, params string[] paths)
+        static Task disableAllInPluginStoreSettingsCollectionByPaths(PluginSettingStoreCollection pssc, params string[] paths)
         {
             foreach (string path in paths)
             {
@@ -120,6 +118,8 @@ namespace OpenTabletDriver.Console
                 foreach (var plugin in plugins)
                     plugin.Enable = false;
             }
+
+            return Task.CompletedTask;
         }
     }
 }
