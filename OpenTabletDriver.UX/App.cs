@@ -19,6 +19,7 @@ using OpenTabletDriver.UX.Windows.Greeter;
 using OpenTabletDriver.UX.Windows.Plugins;
 using OpenTabletDriver.UX.Windows.Tablet;
 using OpenTabletDriver.UX.Windows.Updater;
+using StreamJsonRpc;
 
 namespace OpenTabletDriver.UX
 {

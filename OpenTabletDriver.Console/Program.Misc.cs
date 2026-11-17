@@ -86,7 +86,7 @@ namespace OpenTabletDriver.Console
             return string.Join(null, hash.Select(b => b.ToString("X")));
         }
 
-        static Task appendPluginStoreSettingsCollectionByPaths<T>(PluginSettingStoreCollection pssc, params string[] paths) where T : class
+        static Task AppendPluginStoreSettingsCollectionByPaths<T>(PluginSettingStoreCollection pssc, params string[] paths) where T : class
         {
             foreach (var path in paths)
             {
@@ -105,7 +105,7 @@ namespace OpenTabletDriver.Console
             return Task.CompletedTask;
         }
 
-        static Task disableAllInPluginStoreSettingsCollectionByPaths(PluginSettingStoreCollection pssc, params string[] paths)
+        static Task DisableAllInPluginStoreSettingsCollectionByPaths(PluginSettingStoreCollection pssc, params string[] paths)
         {
             foreach (string path in paths)
             {

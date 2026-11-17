@@ -50,7 +50,7 @@ namespace OpenTabletDriver.Daemon
 
             InitializePlatform();
 
-            Task.Run(loadUserSettings).GetAwaiter().GetResult();
+            Task.Run(LoadUserSettings).GetAwaiter().GetResult();
             Debug.Assert(Settings != null);
 
             Driver.TabletsChanged += (sender, e) => TabletsChanged?.Invoke(sender, e);
@@ -584,7 +584,8 @@ namespace OpenTabletDriver.Daemon
             }
         }
 
-        private static BindingHandler CreateBindingHandler(InputDeviceTree dev, IOutputMode outputMode, BindingSettings settings)
+        private static BindingHandler CreateBindingHandler(InputDeviceTree dev, IOutputMode outputMode,
+            BindingSettings settings)
         {
             string group = dev.Properties.Name;
             var tabletReference = outputMode.Tablet;
@@ -597,23 +598,17 @@ namespace OpenTabletDriver.Daemon
 
             var bindingHandler = new BindingHandler(tabletReference);
 
-            var tip = bindingHandler.Tip = new ThresholdBindingState
+            if (settings.TipButton?.Construct<IStateBinding>(dev.LifetimeScope) is { } tipButtonBinding)
             {
-                Binding = settings.TipButton?.Construct<IBinding>(dev.LifetimeScope),
-            };
+                var tip = bindingHandler.Tip = new BindingState { Binding = tipButtonBinding };
 
-            if (tip.Binding != null)
-            {
                 Log.Write(group, $"Tip Binding: [{tip.Binding}]@{settings.TipActivationThreshold}%");
             }
 
-            var eraser = bindingHandler.Eraser = new ThresholdBindingState
+            if (settings.EraserButton?.Construct<IStateBinding>(dev.LifetimeScope) is { } eraserButtonBinding)
             {
-                Binding = settings.EraserButton?.Construct<IBinding>(dev.LifetimeScope),
-            };
+                var eraser = bindingHandler.Eraser = new BindingState { Binding = eraserButtonBinding };
 
-            if (eraser.Binding != null)
-            {
                 Log.Write(group, $"Eraser Binding: [{eraser.Binding}]@{settings.EraserActivationThreshold}%");
             }
 
@@ -647,26 +642,31 @@ namespace OpenTabletDriver.Daemon
                             wheelBindingHandler.WheelButtons.Select(b => b.Value?.Binding)) + "]");
                 }
 
-                var clockwiseRotation = wheelBindingHandler.ClockwiseRotation = new DeltaThresholdBindingState
+                if (wheelBindingSetting.ClockwiseRotation?.Construct<IStateBinding>(dev.LifetimeScope) is
+                    { } clockwiseRotationBinding)
                 {
-                    Binding = wheelBindingSetting.ClockwiseRotation?.Construct<IBinding>(dev.LifetimeScope),
-                    ActivationThreshold = wheelBindingSetting.ClockwiseActivationThreshold,
-                    IsNegativeThreshold = false
-                };
-
-                var counterClockwiseRotation = wheelBindingHandler.CounterClockwiseRotation =
-                    new DeltaThresholdBindingState
+                    wheelBindingHandler.ClockwiseRotation = new DeltaThresholdBindingState
                     {
-                        Binding = wheelBindingSetting.CounterClockwiseRotation?.Construct<IBinding>(dev.LifetimeScope),
-                        ActivationThreshold = wheelBindingSetting.CounterClockwiseActivationThreshold,
-                        IsNegativeThreshold = true
+                        Binding = clockwiseRotationBinding,
+                        ActivationThreshold = wheelBindingSetting.ClockwiseActivationThreshold,
+                        IsNegativeThreshold = false
                     };
+                    Log.Write(group, $"Wheel {wheelIndex + 1} Clockwise Rotation: [{wheelBindingHandler.ClockwiseRotation}]@{wheelBindingHandler.ClockwiseRotation.ActivationThreshold}°");
+                }
 
-                if (clockwiseRotation.Binding != null)
-                    Log.Write(group, $"Wheel {wheelIndex + 1} Clockwise Rotation: [{clockwiseRotation.Binding}]@{clockwiseRotation.ActivationThreshold}°");
+                if (wheelBindingSetting.CounterClockwiseRotation?.Construct<IStateBinding>(dev.LifetimeScope) is
+                    { } counterClockwiseRotationBinding)
+                {
+                    wheelBindingHandler.CounterClockwiseRotation =
+                        new DeltaThresholdBindingState
+                        {
+                            Binding = counterClockwiseRotationBinding,
+                            ActivationThreshold = wheelBindingSetting.CounterClockwiseActivationThreshold,
+                            IsNegativeThreshold = true
+                        };
 
-                if (counterClockwiseRotation.Binding != null)
-                    Log.Write(group, $"Wheel {wheelIndex + 1} Counter-Clockwise Rotation: [{counterClockwiseRotation.Binding}]@{counterClockwiseRotation.ActivationThreshold}°");
+                    Log.Write(group, $"Wheel {wheelIndex + 1} Counter-Clockwise Rotation: [{counterClockwiseRotationBinding}]@{wheelBindingHandler.CounterClockwiseRotation.ActivationThreshold}°");
+                }
             }
 
             if (settings.MouseButtons.Any(b => b?.Path != null))
@@ -675,19 +675,15 @@ namespace OpenTabletDriver.Daemon
                 Log.Write(group, $"Mouse Button Bindings: [" + string.Join("], [", bindingHandler.MouseButtons.Select(b => b.Value?.Binding)) + "]");
             }
 
-            var scrollUp = bindingHandler.MouseScrollUp = new BindingState
-            {
-                Binding = settings.MouseScrollUp?.Construct<IBinding>(dev.LifetimeScope)
-            };
+            if (settings.MouseScrollUp?.Construct<IStateBinding>(dev.LifetimeScope) is { } mouseScrollUpBinding)
+                bindingHandler.MouseScrollUp = new BindingState { Binding = mouseScrollUpBinding };
 
-            var scrollDown = bindingHandler.MouseScrollDown = new BindingState
-            {
-                Binding = settings.MouseScrollDown?.Construct<IBinding>(dev.LifetimeScope)
-            };
+            if (settings.MouseScrollDown?.Construct<IStateBinding>(dev.LifetimeScope) is { } mouseScrollDownBinding)
+                bindingHandler.MouseScrollDown = new BindingState { Binding = mouseScrollDownBinding };
 
-            if (scrollUp.Binding != null || scrollDown.Binding != null)
+            if (bindingHandler.MouseScrollUp?.Binding != null || bindingHandler.MouseScrollDown?.Binding != null)
             {
-                Log.Write(group, $"Mouse Scroll: Up: [{scrollUp.Binding}] Down: [{scrollDown.Binding}]");
+                Log.Write(group, $"Mouse Scroll: Up: [{bindingHandler.MouseScrollUp?.Binding}] Down: [{bindingHandler.MouseScrollDown?.Binding}]");
             }
 
             return bindingHandler;
@@ -697,7 +693,7 @@ namespace OpenTabletDriver.Daemon
         {
             for (int index = 0; index < collection.Count; index++)
             {
-                var binding = collection[index]?.Construct<IBinding>(serviceManager);
+                var binding = collection[index]?.Construct<IStateBinding>(serviceManager);
                 var state = binding == null ? null : new BindingState
                 {
                     Binding = binding,
@@ -794,7 +790,7 @@ namespace OpenTabletDriver.Daemon
         public async Task<DiagnosticInfo> GetDiagnosticInfo()
         {
             var log = await GetCurrentLog();
-            return new DiagnosticInfo(log, await GetDevices());
+            return new DiagnosticInfo(log, await GetDevices(), Settings);
         }
 
         private void PostDebugReport(TabletReference tablet, IDeviceReport report)

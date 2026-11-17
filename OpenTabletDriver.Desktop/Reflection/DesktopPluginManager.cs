@@ -169,7 +169,7 @@ namespace OpenTabletDriver.Desktop.Reflection
 
             var name = file.Name;
 
-            if (name.IndexOf(filePathInfo.Extension, StringComparison.InvariantCultureIgnoreCase) is var index and > 0)
+            if (name.IndexOf(file.Extension, StringComparison.InvariantCultureIgnoreCase) is var index and > 0)
                 name = name[..index]; // trim extension
 
             var tempDir = new DirectoryInfo(Path.Join(TemporaryDirectory.FullName, name));
@@ -326,7 +326,7 @@ namespace OpenTabletDriver.Desktop.Reflection
 
             Plugins.Remove(context);
 
-            var removalSuccessful = context.Assemblies.All(RemoveAllTypesForAssembly);
+            var removalSuccessful = removeAllTypesForAssemblies(context.Assemblies);
 
             RegisterContainer();
             Container = ContainerBuilder.Build();

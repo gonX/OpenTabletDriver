@@ -26,7 +26,7 @@ namespace OpenTabletDriver.Desktop.RPC
                 }
                 catch (OperationCanceledException) { } // ignore exceptions caused by daemon shutting down
 
-                _ = RespondToRpcRequestAsync(host, stream, ct);
+                _ = respondToRpcRequestAsync(host, stream, ct);
             }
         }
 
